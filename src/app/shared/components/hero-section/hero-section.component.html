@@ -1,0 +1,30 @@
+<section
+  class="relative flex flex-col items-center justify-center px-4 py-20 lg:py-32 overflow-hidden"
+>
+  <div
+    class="absolute inset-0 -z-10 bg-cover bg-center"
+    data-alt="Abstract blue technology data pattern background"
+    style="
+      background-image:
+        linear-gradient(rgba(246, 246, 248, 0.9), rgba(246, 246, 248, 0.8)),
+        url('https://lh3.googleusercontent.com/aida-public/AB6AXuDT7woO-0uIiC8VKadDtNSMst7yGy1EHW85rTeI3uUwXzhAcN673sQsfwOuILj45RHSJlFWOBIGtKAolBXFWncuEmo31opfUJkQ9t9hKz7evgny0aRu_jGxeP_Shfhoaq0WeWKUbktZMhg2r3_8Lx9i1k4zaJDaA2HzXdxjZ7TsjqSWS6PR5f2s1X2E5TYjFtF_XI4lDCgVkcMtxuJ4pFP_S7rKzEz62St68B-GbgFAFLTzxjroYn6q6toGIKxQ8Th8dn7SINvZu_I');
+    "
+  ></div>
+  <div class="flex flex-col items-center text-center max-w-4xl gap-6 animate-fade-in-up">
+    <div
+      class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-primary text-xs font-semibold tracking-wide uppercase"
+    >
+      <app-icon [name]="badgeIcon()" size="sm" />
+      {{ badgeText() }}
+    </div>
+    <h1
+      class="text-4xl md:text-6xl font-black leading-tight tracking-tight text-slate-900 dark:text-white"
+    >
+      Compare Smart, <span class="text-primary">{{ headlineHighlight() }}</span>
+    </h1>
+    <p class="text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl">
+      {{ subtext() }}
+    </p>
+    <ng-content />
+  </div>
+</section>

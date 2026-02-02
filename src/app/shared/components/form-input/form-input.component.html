@@ -1,0 +1,29 @@
+<div>
+  <label
+    class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2"
+    [for]="id() || name()"
+    >{{ label() }}</label
+  >
+  <div class="relative">
+    @if (icon()) {
+      <div
+        class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400"
+      >
+        <app-icon [name]="icon()!" customClass="!text-xl" />
+      </div>
+    }
+    <input
+      [id]="id() || name()"
+      [name]="name()"
+      [type]="type()"
+      [placeholder]="placeholder()"
+      [value]="value()"
+      [disabled]="disabled()"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+      class="w-full py-3 pr-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-slate-400 text-slate-900 dark:text-white disabled:opacity-50"
+      [class.pl-11]="icon()"
+      [class.pl-4]="!icon()"
+    />
+  </div>
+</div>

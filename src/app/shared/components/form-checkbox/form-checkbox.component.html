@@ -1,0 +1,24 @@
+<div
+  class="flex gap-2 pt-1"
+  [class.items-center]="!alignTop()"
+  [class.items-start]="alignTop()"
+  [class.gap-3]="alignTop()"
+>
+  <input
+    [id]="id()"
+    type="checkbox"
+    [checked]="checked()"
+    [disabled]="disabled()"
+    (input)="onInput($event)"
+    (blur)="onBlur()"
+    class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4 flex-shrink-0"
+    [class.mt-1]="alignTop()"
+  />
+  <label [for]="id()" [class]="labelClass()" class="cursor-pointer select-none">
+    @if (label()) {
+      {{ label() }}
+    } @else {
+      <ng-content />
+    }
+  </label>
+</div>
