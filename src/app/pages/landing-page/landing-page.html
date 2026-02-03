@@ -66,19 +66,45 @@
             <app-icon name="arrow_forward" size="lg" />
           </a>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          @for (p of products; track p.title) {
-            <app-product-card
-              [title]="p.title"
-              [subtitle]="p.subtitle"
-              [price]="p.price"
-              [rating]="p.rating"
-              [imageUrl]="p.imageUrl"
-              [imageAlt]="p.imageAlt"
-              [showMatchBadge]="p.showMatchBadge"
-            />
-          }
-        </div>
+        @if (trendingProducts$ | async; as products) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            @for (p of products; track p.title) {
+              <app-product-card
+                [title]="p.title"
+                [subtitle]="p.subtitle"
+                [price]="p.price"
+                [rating]="p.rating"
+                [imageUrl]="p.imageUrl"
+                [imageAlt]="p.imageAlt"
+                [showMatchBadge]="p.showMatchBadge"
+              />
+            }
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            @for (s of [0, 1, 2, 3]; track s) {
+              <div
+                class="animate-pulse bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700"
+              >
+                <div class="h-48 bg-slate-200 dark:bg-slate-700"></div>
+                <div class="p-4 space-y-3">
+                  <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+                  <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+                  <div class="flex items-center justify-between pt-2">
+                    <div class="h-5 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+                    <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-10"></div>
+                  </div>
+                  <div class="pt-3 border-t border-slate-100 dark:border-slate-700">
+                    <div class="flex items-center gap-2">
+                      <div class="h-4 w-4 rounded bg-slate-200 dark:bg-slate-700"></div>
+                      <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
     </section>
 
