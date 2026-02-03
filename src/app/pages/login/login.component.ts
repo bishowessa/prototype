@@ -2,8 +2,6 @@ import { Component, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IconComponent } from '@app/shared/components/icon/icon.component';
-import { NavbarComponent } from '@app/shared/components/navbar/navbar.component';
-import { LandingFooterComponent } from '@app/shared/components/landing-footer/landing-footer.component';
 import { FormInputComponent } from '@app/shared/components/form-input/form-input.component';
 import { FormCheckboxComponent } from '@app/shared/components/form-checkbox/form-checkbox.component';
 import { AuthService } from '@app/core/services/auth.service';
@@ -13,15 +11,7 @@ import type { StorageType } from '@app/core/services/storage.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    FormsModule,
-    IconComponent,
-    NavbarComponent,
-    LandingFooterComponent,
-    FormInputComponent,
-    FormCheckboxComponent,
-    RouterLink,
-  ],
+  imports: [FormsModule, IconComponent, FormInputComponent, FormCheckboxComponent, RouterLink],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
