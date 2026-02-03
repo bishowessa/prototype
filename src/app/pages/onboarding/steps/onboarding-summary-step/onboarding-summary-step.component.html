@@ -1,0 +1,73 @@
+<div class="max-w-3xl w-full">
+  <div class="text-center mb-10">
+    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-4">All set! Let's review.</h1>
+    <p class="text-slate-500 dark:text-slate-400 text-lg">
+      We've tailored your experience based on these preferences.
+    </p>
+  </div>
+
+  <div class="flex flex-col gap-6 mb-12">
+    @for (summary of deviceSummaries; track summary.type) {
+      <div
+        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
+      >
+        <div
+          class="absolute top-0 left-0 w-1 h-full"
+          [class.bg-primary]="summary.type === 'laptop' || summary.type === 'phone'"
+          [class.bg-primary/40]="summary.type !== 'laptop' && summary.type !== 'phone'"
+        ></div>
+        <div class="flex items-start">
+          <div class="flex gap-5">
+            <div
+              class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-primary"
+            >
+              <app-icon [name]="summary.icon" size="xl" />
+            </div>
+            <div>
+              <h3
+                class="text-xl font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-wide text-sm"
+              >
+                {{ summary.title }}
+              </h3>
+              <div class="flex flex-wrap gap-2">
+                @for (tag of summary.tags; track tag) {
+                  <span
+                    class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full text-xs font-medium"
+                  >
+                    {{ tag }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div
+    class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 mb-10 flex items-start gap-4"
+  >
+    <div class="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white">
+      <span class="material-symbols-outlined">check_circle</span>
+    </div>
+    <div>
+      <h4 class="font-bold text-emerald-900 dark:text-emerald-400">Settings Saved Successfully</h4>
+      <p class="text-emerald-800 dark:text-emerald-500/80 text-sm mt-1 leading-relaxed">
+        Your personalized profile has been created. Don't worry, you can refine these settings or add
+        more devices at any time from your dashboard.
+      </p>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    <button
+      type="button"
+      class="w-full py-5 bg-primary hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-xl shadow-blue-500/25 text-xl flex items-center justify-center gap-3"
+      (click)="onFinish()"
+    >
+      Finish & Explore Products
+      <span class="material-symbols-outlined">arrow_forward</span>
+    </button>
+  </div>
+</div>

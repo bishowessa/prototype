@@ -1,0 +1,26 @@
+<div>
+  <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+    {{ label }}
+  </p>
+  <div class="flex gap-4">
+    @for (opt of options; track opt.value) {
+      <button
+        type="button"
+        class="flex-1 py-3 px-2 rounded-xl text-sm font-bold transition-colors"
+        [class.bg-primary]="isSelected(opt.value)"
+        [class.text-white]="isSelected(opt.value)"
+        [class.shadow-lg]="isSelected(opt.value)"
+        [class.shadow-primary]="isSelected(opt.value)"
+        [class.shadow-primary/20]="isSelected(opt.value)"
+        [class.bg-slate-50]="!isSelected(opt.value)"
+        [class.dark:bg-slate-800]="!isSelected(opt.value)"
+        [class.text-slate-500]="!isSelected(opt.value)"
+        [class.dark:text-slate-500]="!isSelected(opt.value)"
+        [class.hover:bg-slate-100]="!isSelected(opt.value)"
+        (click)="onSelect(opt.value)"
+      >
+        {{ opt.symbol }}
+      </button>
+    }
+  </div>
+</div>

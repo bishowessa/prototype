@@ -1,0 +1,13 @@
+<div class="flex flex-col gap-8">
+  <app-accessory-feature-select
+    label="Usage Profile"
+    [value]="value.profile"
+    [options]="profileOptions"
+    (valueChange)="onProfileChange($event)"
+  />
+
+  <app-accessory-budget-input
+    [value]="value.budget"
+    (valueChange)="onBudgetChange($event)"
+  />
+</div>

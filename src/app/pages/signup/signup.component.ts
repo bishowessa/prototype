@@ -56,7 +56,7 @@ export class SignUpComponent {
         this.storage.setItem('user', result.user, 'local');
         this.storage.setItem('token', result.token, 'local');
         this.signupLoading = false;
-        this.router.navigate(['/']);
+        this.router.navigate(['/onboarding']);
       },
       error: (err: Error) => {
         this.signupError = err?.message ?? 'Registration failed. Please try again.';

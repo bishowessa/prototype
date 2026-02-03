@@ -1,0 +1,11 @@
+<div>
+  <p class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+    {{ label }}
+  </p>
+  <app-form-select-group
+    [columns]="3"
+    [options]="options"
+    [value]="value"
+    (valueChange)="onValueChange($event)"
+  />
+</div>

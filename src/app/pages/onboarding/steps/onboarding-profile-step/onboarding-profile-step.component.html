@@ -1,0 +1,31 @@
+<div class="text-center mb-12">
+  <h1 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">
+    Welcome! How will you use SmartCompare?
+  </h1>
+  <p class="text-lg text-slate-500 dark:text-slate-400">
+    Select a profile that best describes you to personalize your recommendations.
+  </p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+  @for (p of profiles; track p.title) {
+    <app-onboarding-profile-card
+      [icon]="p.icon"
+      [title]="p.title"
+      [description]="p.description"
+    />
+  }
+</div>
+
+<div class="text-center">
+  <button
+    type="button"
+    class="text-slate-500 dark:text-slate-400 font-medium hover:text-primary transition-colors flex items-center justify-center gap-2 group"
+    (click)="onSkip()"
+  >
+    Skip, I'll customize manually
+    <span class="material-symbols-outlined !text-sm group-hover:translate-x-1 transition-transform">
+      arrow_forward
+    </span>
+  </button>
+</div>

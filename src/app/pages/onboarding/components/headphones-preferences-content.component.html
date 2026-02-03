@@ -1,0 +1,13 @@
+<div class="flex flex-col gap-8">
+  <app-accessory-feature-select
+    label="Preferred Features"
+    [value]="value.feature"
+    [options]="featureOptions"
+    (valueChange)="onFeatureChange($event)"
+  />
+
+  <app-accessory-budget-input
+    [value]="value.budget"
+    (valueChange)="onBudgetChange($event)"
+  />
+</div>

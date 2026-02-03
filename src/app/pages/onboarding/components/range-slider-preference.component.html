@@ -1,0 +1,29 @@
+<section class="space-y-4">
+  @if (label) {
+    <div class="flex justify-between items-center">
+      <label class="text-base font-bold text-slate-900 dark:text-white">
+        {{ label }}
+      </label>
+    </div>
+  }
+  <div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl">
+    @if (leftLabel || rightLabel) {
+      <div
+        class="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-tighter mb-4"
+      >
+        <span>{{ leftLabel }}</span>
+        <span>{{ rightLabel }}</span>
+      </div>
+    }
+    <input
+      class="w-full h-2 rounded-lg appearance-none cursor-pointer accent-primary"
+      [style.background]="trackBackground"
+      type="range"
+      min="0"
+      max="100"
+      [step]="step"
+      [ngModel]="value"
+      (ngModelChange)="onChange($event)"
+    />
+  </div>
+</section>
