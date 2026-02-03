@@ -6,6 +6,13 @@ export const routes: Routes = [
     loadComponent: () => import('@app/pages/landing-page/landing-page').then((m) => m.LandingPage),
   },
   {
+    path: 'onboarding',
+    loadComponent: () =>
+      import('@app/pages/onboarding/onboarding-layout.component').then(
+        (m) => m.OnboardingLayoutComponent,
+      ),
+  },
+  {
     path: 'login',
     loadComponent: () => import('@app/pages/login/login.component').then((m) => m.LoginComponent),
   },
