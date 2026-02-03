@@ -7,10 +7,8 @@ export const routes: Routes = [
   },
   {
     path: 'onboarding',
-    loadComponent: () =>
-      import('@app/pages/onboarding/onboarding-layout.component').then(
-        (m) => m.OnboardingLayoutComponent,
-      ),
+    loadChildren: () =>
+      import('@app/pages/onboarding/onboarding.routes').then((m) => m.onboardingRoutes),
   },
   {
     path: 'login',

@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { RangeSliderPreferenceComponent } from './range-slider-preference.component';
-
-export type PhoneScreenSizeOption = 'compact' | 'standard' | 'large';
+import { PhoneScreenSizeOption } from '@app/shared/models/preference-options.model';
 
 @Component({
   selector: 'app-phone-screen-size-input',

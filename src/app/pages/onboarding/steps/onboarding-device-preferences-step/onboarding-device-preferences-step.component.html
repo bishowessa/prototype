@@ -1,40 +1,20 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between mb-4">
-    <div>
-      <h2 class="text-sm font-bold uppercase tracking-widest text-primary">
-        Step 3 &middot; Device Preferences
-      </h2>
-      <p class="text-sm text-slate-500 dark:text-slate-400">
-        Fine-tune preferences for the devices you selected.
-      </p>
-    </div>
-    <button
-      type="button"
-      class="flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-500 hover:text-primary transition-colors"
-      (click)="onBack()"
-    >
-      <span class="material-symbols-outlined !text-base">arrow_back</span>
-      Back
-    </button>
-  </div>
-
-  @if (currentDevice === 'laptop') {
-    <app-onboarding-laptop-preferences-step (save)="onLaptopSave($event)" />
-  } @else if (currentDevice === 'phone') {
-    <app-onboarding-phone-preferences-step (save)="onPhoneSave($event)" />
+<app-step-wrapper
+  stepLabel="Step 3 · Device Preferences"
+  description="Fine-tune preferences for the devices you selected."
+  (back)="onBack()"
+>
+  @if (currentDevice() === 'laptop') {
+    <app-onboarding-laptop-preferences-step (save)="onSave($event)" />
+  } @else if (currentDevice() === 'phone') {
+    <app-onboarding-phone-preferences-step (save)="onSave($event)" />
   } @else {
     <div class="text-center text-slate-500 dark:text-slate-400 py-16">
       No device preferences to configure. You can go back and select devices or continue.
     </div>
     <div class="flex justify-end">
-      <button
-        type="button"
-        class="flex items-center gap-2 px-10 py-4 bg-primary hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 cursor-pointer"
-        (click)="continue.emit()"
-      >
+      <app-step-navigation-button variant="primary" (click)="continue.emit()">
         Next Step
-        <span class="material-symbols-outlined !text-xl">arrow_forward</span>
-      </button>
+      </app-step-navigation-button>
     </div>
   }
-</div>
+</app-step-wrapper>

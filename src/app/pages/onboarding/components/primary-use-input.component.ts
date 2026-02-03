@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormSelectGroupComponent, FormSelectOption } from '@app/shared/components/form-select-group/form-select-group.component';
-
-export type PrimaryUseOption = 'photography' | 'gaming' | 'daily-tasks' | 'content-creation';
+import { PrimaryUseOption } from '@app/shared/models/preference-options.model';
 
 @Component({
   selector: 'app-primary-use-input',

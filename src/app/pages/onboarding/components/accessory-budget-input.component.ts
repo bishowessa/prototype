@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-
-export type AccessoryBudgetOption = 'low' | 'medium' | 'high';
+import { AccessoryBudgetOption } from '@app/shared/models/preference-options.model';
 
 @Component({
   selector: 'app-accessory-budget-input',

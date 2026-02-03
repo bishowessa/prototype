@@ -1,22 +1,15 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { OnboardingStateService } from '@app/core/services/onboarding-state.service';
 import { IconComponent } from '@app/shared/components/icon/icon.component';
-import { LaptopPreferencesPayload } from '../onboarding-laptop-preferences-step/onboarding-laptop-preferences-step.component';
-import { PhonePreferencesPayload } from '../onboarding-phone-preferences-step/onboarding-phone-preferences-step.component';
+import { LaptopPreferencesPayload, PhonePreferencesPayload } from '@app/shared/models/device-preferences.model';
 import {
   HeadphonesPreferencesPayload,
-} from '../../components/headphones-preferences-content.component';
-import { MousePreferencesPayload } from '../../components/mouse-preferences-content.component';
-import { KeyboardPreferencesPayload } from '../../components/keyboard-preferences-content.component';
-import { ChargerPreferencesPayload } from '../../components/charger-preferences-content.component';
-
-interface DeviceSummary {
-  type: string;
-  icon: string;
-  title: string;
-  tags: string[];
-}
+  MousePreferencesPayload,
+  KeyboardPreferencesPayload,
+  ChargerPreferencesPayload,
+} from '@app/shared/models/accessory-preferences.model';
+import { DeviceSummary } from '@app/shared/models/device-options.model';
 
 @Component({
   selector: 'app-onboarding-summary-step',
@@ -29,6 +22,16 @@ export class OnboardingSummaryStepComponent implements OnInit {
   private readonly router = inject(Router);
 
   protected deviceSummaries: DeviceSummary[] = [];
+
+  constructor() {
+    // React to state changes - reload summaries when state updates
+    effect(() => {
+      // Access the state signal to create a dependency
+      this.onboardingState.state$();
+      // Reload summaries when state changes
+      this.loadSummaries();
+    });
+  }
 
   ngOnInit(): void {
     this.loadSummaries();

@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormSelectGroupComponent, FormSelectOption } from '@app/shared/components/form-select-group/form-select-group.component';
-
-export type DisplaySizeOption = '13-14' | '15-16' | '17-plus' | '2-in-1';
+import { DisplaySizeOption } from '@app/shared/models/preference-options.model';
 
 @Component({
   selector: 'app-display-size-input',

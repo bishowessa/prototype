@@ -1,7 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormSelectGroupComponent, FormSelectOption } from '@app/shared/components/form-select-group/form-select-group.component';
-
-export type StorageCapacityOption = '128' | '256' | '512-plus';
+import { StorageCapacityOption } from '@app/shared/models/preference-options.model';
 
 @Component({
   selector: 'app-storage-capacity-input',

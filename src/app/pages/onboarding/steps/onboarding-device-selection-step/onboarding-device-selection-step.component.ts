@@ -2,14 +2,7 @@ import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { IconComponent } from '@app/shared/components/icon/icon.component';
 import { OnboardingStateService } from '@app/core/services/onboarding-state.service';
-
-type DeviceType = 'laptop' | 'phone' | 'headphones' | 'mouse' | 'keyboard' | 'charger';
-
-interface DeviceOption {
-  id: DeviceType;
-  icon: string;
-  label: string;
-}
+import { DeviceType, DeviceOption } from '@app/shared/models/device-options.model';
 
 @Component({
   selector: 'app-onboarding-device-selection-step',

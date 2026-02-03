@@ -1,22 +1,13 @@
-import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID, signal, computed, effect } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { StorageService } from '@app/core/services/storage.service';
-
-export type OnboardingVariantStatus = 'unfinished' | 'finished';
-
-export interface OnboardingVariant<T = unknown> {
-  status: OnboardingVariantStatus;
-  data: T;
-}
-
-export interface OnboardingState {
-  currentStep: number;
-  selectedDevices: string[];
-  variants: Record<string, OnboardingVariant[]>;
-}
+import {
+  OnboardingState,
+  OnboardingVariant,
+  OnboardingVariantStatus,
+} from '@app/shared/models/onboarding-state.model';
 
 const ONBOARDING_STATE_KEY = 'onboarding_state';
-const ONBOARDING_STEP_KEY = 'onboarding_step';
 
 @Injectable({
   providedIn: 'root',
@@ -31,13 +22,31 @@ export class OnboardingStateService {
 
   private defaultState(): OnboardingState {
     return {
-      currentStep: 1,
       selectedDevices: [],
       variants: {},
     };
   }
 
-  getState(): OnboardingState {
+  private readonly state = signal<OnboardingState>(this.loadInitialState());
+
+  // Public readonly signal for reactive access
+  readonly state$ = this.state.asReadonly();
+
+  // Computed signals for common state access
+  readonly selectedDevices$ = computed(() => this.state().selectedDevices);
+  readonly variants$ = computed(() => this.state().variants);
+
+  constructor() {
+    // Auto-save state to storage whenever it changes
+    if (this.isBrowser) {
+      effect(() => {
+        const currentState = this.state();
+        this.storage.setItem(ONBOARDING_STATE_KEY, currentState);
+      });
+    }
+  }
+
+  private loadInitialState(): OnboardingState {
     if (!this.isBrowser) {
       return this.defaultState();
     }
@@ -45,40 +54,21 @@ export class OnboardingStateService {
     return stored ?? this.defaultState();
   }
 
-  private saveState(state: OnboardingState): void {
-    if (!this.isBrowser) return;
-    this.storage.setItem(ONBOARDING_STATE_KEY, state);
+  getState(): OnboardingState {
+    return this.state();
   }
 
-  getCurrentStep(): number {
-    if (!this.isBrowser) {
-      return 1;
-    }
-    const state = this.getState();
-    const stepFromState = state.currentStep || 1;
-    const stepFromKey = this.storage.getItem<number>(ONBOARDING_STEP_KEY) ?? stepFromState;
-    return stepFromKey || 1;
+  updateState(updater: (state: OnboardingState) => OnboardingState): void {
+    this.state.update(updater);
   }
 
-  setCurrentStep(step: number): void {
-    if (!this.isBrowser) return;
-    const state = this.getState();
-    const next: OnboardingState = {
-      ...state,
-      currentStep: step,
-    };
-    this.saveState(next);
-    this.storage.setItem(ONBOARDING_STEP_KEY, step);
-  }
 
   setSelectedDevices(devices: string[]): void {
     if (!this.isBrowser) return;
-    const state = this.getState();
-    const next: OnboardingState = {
+    this.state.update(state => ({
       ...state,
       selectedDevices: [...devices],
-    };
-    this.saveState(next);
+    }));
   }
 
   upsertVariant<T = unknown>(
@@ -88,27 +78,27 @@ export class OnboardingStateService {
     status: OnboardingVariantStatus,
   ): void {
     if (!this.isBrowser) return;
-    const state = this.getState();
-    const existingForType = (state.variants[deviceType] ?? []) as OnboardingVariant<T>[];
+    
+    this.state.update(state => {
+      const existingForType = (state.variants[deviceType] ?? []) as OnboardingVariant<T>[];
 
-    let nextForType: OnboardingVariant<T>[];
-    if (variantIndex === null || variantIndex < 0 || variantIndex >= existingForType.length) {
-      nextForType = [...existingForType, { status, data: payload }];
-    } else {
-      nextForType = existingForType.map((v, i) =>
-        i === variantIndex ? { status, data: payload } : v,
-      );
-    }
+      let nextForType: OnboardingVariant<T>[];
+      if (variantIndex === null || variantIndex < 0 || variantIndex >= existingForType.length) {
+        nextForType = [...existingForType, { status, data: payload }];
+      } else {
+        nextForType = existingForType.map((v, i) =>
+          i === variantIndex ? { status, data: payload } : v,
+        );
+      }
 
-    const next: OnboardingState = {
-      ...state,
-      variants: {
-        ...state.variants,
-        [deviceType]: nextForType,
-      },
-    };
-
-    this.saveState(next);
+      return {
+        ...state,
+        variants: {
+          ...state.variants,
+          [deviceType]: nextForType,
+        },
+      };
+    });
   }
 
   getDeviceCompletionGroups(): { completeDevices: string[]; incompleteDevices: string[] } {
@@ -129,6 +119,24 @@ export class OnboardingStateService {
     }
 
     return { completeDevices, incompleteDevices };
+  }
+
+  canProceedToStep(step: number): boolean {
+    const state = this.getState();
+    
+    if (step === 1) return true;
+    if (step === 2) return true; // Profile can be skipped
+    if (step === 3) return state.selectedDevices.length > 0;
+    if (step === 4) return state.selectedDevices.length > 0;
+    if (step === 5) return true; // Summary is always accessible
+    
+    return false;
+  }
+
+  clear(): void {
+    if (!this.isBrowser) return;
+    this.storage.removeItem(ONBOARDING_STATE_KEY);
+    this.state.set(this.defaultState());
   }
 }
 

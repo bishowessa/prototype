@@ -1,14 +1,9 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AccessoryFeatureSelectComponent } from './accessory-feature-select.component';
-import { AccessoryBudgetInputComponent, AccessoryBudgetOption } from './accessory-budget-input.component';
+import { AccessoryBudgetInputComponent } from './accessory-budget-input.component';
 import { FormSelectOption } from '@app/shared/components/form-select-group/form-select-group.component';
-
-export type MouseProfileOption = 'gaming' | 'office' | 'ergonomic';
-
-export interface MousePreferencesPayload {
-  profile: MouseProfileOption;
-  budget: AccessoryBudgetOption;
-}
+import { MousePreferencesPayload, MouseProfileOption } from '@app/shared/models/accessory-preferences.model';
+import { AccessoryBudgetOption } from '@app/shared/models/preference-options.model';
 
 @Component({
   selector: 'app-mouse-preferences-content',
