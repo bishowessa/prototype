@@ -39,7 +39,7 @@ export class LandingPage {
       icon: 'trending_down',
       title: 'Price Tracking',
       description:
-        'Visualize real-time price history and set smart alerts to catch price drops the moment they happen.',
+        'Visualize daily-updated price history and set smart alerts to catch price drops the moment they happen.',
     },
     {
       icon: 'table_view',

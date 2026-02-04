@@ -33,12 +33,15 @@ export class OnboardingDevicePreferencesStepComponent implements OnInit {
     // Filter to only device types (laptop, phone) - exclude accessories
     const deviceTypes = ['laptop', 'phone'];
     const incompleteDeviceTypes: string[] = [];
+    const selectedDeviceTypes: string[] = [];
     
     for (const device of state.selectedDevices) {
       // Only check device types, skip accessories
       if (!deviceTypes.includes(device)) {
         continue;
       }
+      
+      selectedDeviceTypes.push(device);
       
       const variants = state.variants[device] ?? [];
       const hasAny = variants.length > 0;
@@ -49,11 +52,21 @@ export class OnboardingDevicePreferencesStepComponent implements OnInit {
       }
     }
     
+    // First priority: show incomplete devices
     if (incompleteDeviceTypes.includes('laptop')) {
       return 'laptop';
     } else if (incompleteDeviceTypes.includes('phone')) {
       return 'phone';
     }
+    
+    // Second priority: if all are finished but devices are selected, show the first selected device
+    // This allows users to review/edit their preferences even if marked as finished
+    if (selectedDeviceTypes.includes('laptop')) {
+      return 'laptop';
+    } else if (selectedDeviceTypes.includes('phone')) {
+      return 'phone';
+    }
+    
     return null;
   });
 
