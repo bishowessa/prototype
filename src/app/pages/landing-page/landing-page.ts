@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
+import { RouterLink, Router } from '@angular/router';
 import { IconComponent } from '@app/shared/components/icon/icon.component';
 import { NavbarComponent } from '@app/shared/components/navbar/navbar.component';
 import { LandingFooterComponent } from '@app/shared/components/landing-footer/landing-footer.component';
@@ -14,7 +15,9 @@ import { ProductListingService } from '@app/core/services/product-listing.servic
   selector: 'app-landing-page',
   standalone: true,
   imports: [
+    CommonModule,
     AsyncPipe,
+    RouterLink,
     IconComponent,
     NavbarComponent,
     LandingFooterComponent,
@@ -27,42 +30,44 @@ import { ProductListingService } from '@app/core/services/product-listing.servic
 })
 export class LandingPage {
   private readonly productListingService = inject(ProductListingService);
+  private readonly router = inject(Router);
+
+  // Directly reference the signal
+  selectedIds = this.productListingService.selectedIds;
+  trendingProducts$ = this.productListingService.getTrendingProducts();
+
+  // FIX: Removed 'event' parameter. 
+  // The ProductCardComponent handles the DOM event stopping. 
+  // We just need to know WHICH product to toggle.
+  toggleCompare(id: number) {
+    this.productListingService.toggleComparison(id);
+  }
+
+  goToComparison() {
+    this.router.navigate(['/compare']);
+  }
 
   protected readonly features = [
     {
       icon: 'psychology',
       title: 'AI Personalization',
-      description:
-        'Get tailored recommendations based on your specific usage patterns and budget, not just generic lists.',
+      description: 'Get tailored recommendations based on your specific usage patterns and budget.',
     },
     {
       icon: 'trending_down',
       title: 'Price Tracking',
-      description:
-        'Visualize daily-updated price history and set smart alerts to catch price drops the moment they happen.',
+      description: 'Visualize daily-updated price history and set smart alerts to catch price drops.',
     },
     {
       icon: 'table_view',
       title: 'Deep Spec Comparison',
-      description:
-        'Generate comprehensive side-by-side technical tables instantly to spot the smallest differences.',
+      description: 'Generate comprehensive side-by-side technical tables instantly.',
     },
   ] as const;
 
-  protected readonly trendingProducts$ = this.productListingService.getTrendingProducts();
-
   protected readonly trustItems: TrustItem[] = [
-    {
-      title: 'Transparent Estimates',
-      description: 'We clearly label AI-predicted specs versus manufacturer stated specs.',
-    },
-    {
-      title: 'Real User Sentiment',
-      description: 'Aggregated sentiment analysis from verified purchase reviews.',
-    },
-    {
-      title: 'No Sponsored bias',
-      description: 'Our comparison algorithm ranks purely on value and performance matches.',
-    },
+    { title: 'Transparent Estimates', description: 'We clearly label AI-predicted specs.' },
+    { title: 'Real User Sentiment', description: 'Aggregated sentiment analysis.' },
+    { title: 'No Sponsored bias', description: 'Our comparison algorithm ranks purely on value.' },
   ];
 }

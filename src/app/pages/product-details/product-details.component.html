@@ -1,0 +1,379 @@
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+  <app-navbar />
+
+  <main class="flex-grow">
+    @if (product$ | async; as product) {
+      <div class="max-w-7xl mx-auto px-6 lg:px-20 py-6">
+        
+        <nav class="flex text-xs font-medium text-slate-400 mb-8 items-center gap-2">
+          <a [routerLink]="['/']" class="hover:text-primary transition-colors">Home</a>
+          <span class="material-symbols-outlined !text-xs">chevron_right</span>
+          <a [routerLink]="['/products']" class="hover:text-primary transition-colors">Phones</a>
+          <span class="material-symbols-outlined !text-xs">chevron_right</span>
+          <span class="text-slate-900 dark:text-white font-bold">{{ product.title }}</span>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-5">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 flex items-center justify-center sticky top-28">
+              <img [alt]="product.imageAlt" class="max-h-[500px] object-contain" [src]="product.imageUrl"/>
+              <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
+                <span class="w-2 h-2 rounded-full bg-primary"></span>
+                <span class="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700"></span>
+                <span class="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8">
+              <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                <div>
+                  <span class="text-xs font-bold text-primary uppercase tracking-widest mb-2 block">{{ product.subtitle }}</span>
+                  <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-2 leading-tight">{{ product.title }}</h1>
+                  <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1">
+                      <span class="material-symbols-outlined text-yellow-400 !text-lg">star</span>
+                      <span class="font-bold text-lg">{{ product.rating }}</span>
+                      <span class="text-slate-400 text-sm">(1,248 Reviews)</span>
+                    </div>
+                    <div class="h-4 w-[1px] bg-slate-200"></div>
+                    <span class="text-emerald-500 text-sm font-bold flex items-center gap-1">
+                      <span class="material-symbols-outlined !text-sm">verified</span> Verified Seller
+                    </span>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 font-bold text-sm hover:bg-slate-50 transition-all">
+                    <span class="material-symbols-outlined !text-lg">favorite</span>
+                    Add to Wishlist
+                  </button>
+                  <button [routerLink]="['/compare']" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all">
+                    <span class="material-symbols-outlined !text-lg">compare_arrows</span>
+                    Compare
+                  </button>
+                </div>
+              </div>
+
+              <div class="mt-8 bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 border-l-4 border-primary">
+                <div class="flex items-center gap-2 mb-4">
+                  <div class="ai-gradient-bg p-1 rounded-lg">
+                    <span class="material-symbols-outlined text-white !text-xl">auto_awesome</span>
+                  </div>
+                  <h3 class="text-sm font-black uppercase tracking-wider ai-text-gradient">AI Smart Summary</h3>
+                  <span class="ml-auto text-[10px] font-bold text-slate-400 px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded uppercase">Photography Expert Profile</span>
+                </div>
+                <p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                  Based on current market data across 5 top vendors, the {{ product.title }} represents the best-in-class value for mobile photographers. Its custom sensor architecture outperforms competitors in low-light scenarios by 22%. While the price sits at a premium, the longevity of its chipset and superior thermal management justify the investment for your professional workflow.
+                </p>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-800">
+                    <h4 class="text-[10px] font-black text-emerald-600 uppercase mb-1">Pros</h4>
+                    <ul class="text-xs space-y-1 text-slate-600 dark:text-slate-400">
+                      <li>• Industry-leading color accuracy</li>
+                      <li>• Best price at Amazon today</li>
+                    </ul>
+                  </div>
+                  <div class="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-800">
+                    <h4 class="text-[10px] font-black text-amber-600 uppercase mb-1">Cons</h4>
+                    <ul class="text-xs space-y-1 text-slate-600 dark:text-slate-400">
+                      <li>• Limited regional availability</li>
+                      <li>• Slower software update cycle</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+              <div class="px-8 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 dark:text-white">Price Comparison</h3>
+                <span class="text-xs text-slate-400 font-medium">Updated 2 minutes ago</span>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                  <thead>
+                    <tr class="text-slate-400 border-b border-slate-100 dark:border-slate-800 uppercase text-[10px] font-black tracking-widest">
+                      <th class="px-8 py-4">Vendor</th>
+                      <th class="px-8 py-4">Availability</th>
+                      <th class="px-8 py-4">Price</th>
+                      <th class="px-8 py-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-50 dark:divide-slate-800">
+                    <tr class="bg-blue-50/50 dark:bg-primary/5">
+                      <td class="px-8 py-4 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center font-bold text-primary">A</div>
+                        <span class="font-bold text-slate-900 dark:text-white">Amazon</span>
+                      </td>
+                      <td class="px-8 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-700">In Stock</span>
+                      </td>
+                      <td class="px-8 py-4 font-black text-primary text-lg">{{ product.price }}</td>
+                      <td class="px-8 py-4 text-right">
+                        <button class="bg-primary text-white px-4 py-2 rounded-lg font-bold text-xs">View Deal</button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="px-8 py-4 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center font-bold text-primary">B</div>
+                        <span class="font-bold text-slate-900 dark:text-white">Best Buy</span>
+                      </td>
+                      <td class="px-8 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-emerald-100 text-emerald-700">In Stock</span>
+                      </td>
+                      <td class="px-8 py-4 font-bold text-slate-900 dark:text-white">$1,149.00</td>
+                      <td class="px-8 py-4 text-right">
+                        <button class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-lg font-bold text-xs hover:bg-slate-200 transition-all">View Deal</button>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="px-8 py-4 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center font-bold text-primary">W</div>
+                        <span class="font-bold text-slate-900 dark:text-white">Walmart</span>
+                      </td>
+                      <td class="px-8 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">Low Stock</span>
+                      </td>
+                      <td class="px-8 py-4 font-bold text-slate-900 dark:text-white">$1,199.00</td>
+                      <td class="px-8 py-4 text-right">
+                        <button class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-4 py-2 rounded-lg font-bold text-xs hover:bg-slate-200 transition-all">View Deal</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-12 space-y-8">
+          <div class="flex items-center gap-4">
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Technical Specifications</h2>
+            <div class="h-[1px] flex-grow bg-slate-200 dark:border-slate-800"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary !text-xl">straighten</span>
+                <h4 class="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-wider">Design</h4>
+              </div>
+              <table class="w-full text-xs spec-table">
+                <tbody><tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400 w-1/3">Dimensions</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">163.3 x 77.9 x 8.9 mm</td>
+                </tr>
+                <tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400">Weight</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">228g</td>
+                </tr>
+                <tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400">Build</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">Glass front/back (Gorilla Glass Victus 2), Aluminum frame</td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-3 font-semibold text-slate-400">SIM</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">Nano-SIM and eSIM</td>
+                </tr>
+                </tbody></table>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary !text-xl">smartphone</span>
+                <h4 class="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-wider">Display</h4>
+              </div>
+              <table class="w-full text-xs spec-table">
+                <tbody><tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400 w-1/3">Type</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">LTPO 3.0 AMOLED, 1B colors</td>
+                </tr>
+                <tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400">Size</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">6.8 inches</td>
+                </tr>
+                <tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400">Refresh Rate</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                    120Hz
+                    <span class="ai-gradient-bg text-[8px] text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">AI Predicted</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-3 font-semibold text-slate-400">Protection</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">Gorilla Glass Victus 2</td>
+                </tr>
+                </tbody></table>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary !text-xl">memory</span>
+                <h4 class="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-wider">Platform</h4>
+              </div>
+              <table class="w-full text-xs spec-table">
+                <tbody><tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400 w-1/3">OS</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">Android 14, Stellar UI 6</td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-3 font-semibold text-slate-400">Chipset</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">Snapdragon 8 Gen 3 (4 nm)</td>
+                </tr>
+                </tbody></table>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden lg:col-span-1">
+              <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary !text-xl">photo_camera</span>
+                <h4 class="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-wider">Main Camera</h4>
+              </div>
+              <div class="p-6">
+                <div class="flex items-center gap-6 mb-4">
+                  <div class="relative flex items-center justify-center w-20 h-20">
+                    <svg class="w-full h-full transform -rotate-90">
+                      <circle class="text-slate-100 dark:text-slate-800" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-width="8"></circle>
+                      <circle class="text-primary" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" stroke-dasharray="213.6" stroke-dashoffset="12.8" stroke-width="8"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                      <span class="text-lg font-black text-primary">94</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <h5 class="text-xs font-bold text-slate-900 dark:text-white uppercase">Camera Score</h5>
+                      <span class="ai-gradient-bg text-[8px] text-white px-1.5 py-0.5 rounded font-black uppercase tracking-tighter">Predicted by AI</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 font-medium">Top 2% of mobile devices tested this year.</p>
+                  </div>
+                </div>
+                <table class="w-full text-xs spec-table">
+                  <tbody><tr class="border-b border-slate-50 dark:border-slate-800">
+                    <td class="py-2 font-semibold text-slate-400">Triple</td>
+                    <td class="py-2 text-slate-600 dark:text-slate-300">50MP Wide + 12MP UltraWide + 10MP Tele</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 font-semibold text-slate-400">Features</td>
+                    <td class="py-2 text-slate-600 dark:text-slate-300">OIS, Laser AF, 8K Video</td>
+                  </tr>
+                  </tbody></table>
+              </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary !text-xl">battery_charging_full</span>
+                <h4 class="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-wider">Battery</h4>
+              </div>
+              <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">Battery Health Score</span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-2xl font-black text-slate-900 dark:text-white">88/100</span>
+                      <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 text-[8px] px-1.5 py-0.5 rounded font-black uppercase tracking-tighter self-start mt-1">Predicted</span>
+                    </div>
+                  </div>
+                  <span class="material-symbols-outlined text-emerald-500 !text-3xl">battery_6_bar</span>
+                </div>
+                <table class="w-full text-xs spec-table">
+                  <tbody><tr class="border-b border-slate-50 dark:border-slate-800">
+                    <td class="py-2 font-semibold text-slate-400 w-1/3">Capacity</td>
+                    <td class="py-2 text-slate-600 dark:text-slate-300">5,000 mAh</td>
+                  </tr>
+                  <tr>
+                    <td class="py-2 font-semibold text-slate-400">Charging</td>
+                    <td class="py-2 text-slate-600 dark:text-slate-300">45W Wired, 15W Wireless</td>
+                  </tr>
+                  </tbody></table>
+              </div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
+              <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary !text-xl">wifi</span>
+                <h4 class="font-bold text-slate-900 dark:text-white uppercase text-xs tracking-wider">Connectivity</h4>
+              </div>
+              <table class="w-full text-xs spec-table">
+                <tbody><tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400 w-1/3">USB</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">USB Type-C 3.2, OTG</td>
+                </tr>
+                <tr class="border-b border-slate-50 dark:border-slate-800">
+                  <td class="px-6 py-3 font-semibold text-slate-400">Bluetooth</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">5.3, A2DP, LE</td>
+                </tr>
+                <tr>
+                  <td class="px-6 py-3 font-semibold text-slate-400">WLAN</td>
+                  <td class="px-6 py-3 text-slate-600 dark:text-slate-300">Wi-Fi 7, Tri-band</td>
+                </tr>
+                </tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-16">
+          <div class="flex items-center justify-between mb-8">
+            <h2 class="text-2xl font-black text-slate-900 dark:text-white">Customer Reviews</h2>
+            <button class="text-primary font-bold text-sm flex items-center gap-1 hover:underline">
+              Write a review <span class="material-symbols-outlined !text-sm">edit</span>
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h4 class="font-bold text-slate-900 dark:text-white">Marcus T.</h4>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">March 12, 2024</span>
+                </div>
+                <div class="flex gap-0.5">
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                "The low-light photography is absolutely insane. I replaced my mirrorless camera for everyday shoots with this phone."
+              </p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h4 class="font-bold text-slate-900 dark:text-white">Elena R.</h4>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">February 28, 2024</span>
+                </div>
+                <div class="flex gap-0.5">
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-slate-200 !text-sm">star</span>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                "Battery life easily lasts two days for me. My only gripe is the size, it's a bit heavy for one-handed use."
+              </p>
+            </div>
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <h4 class="font-bold text-slate-900 dark:text-white">Sarah K.</h4>
+                  <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">January 15, 2024</span>
+                </div>
+                <div class="flex gap-0.5">
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                  <span class="material-symbols-outlined text-yellow-400 !text-sm">star</span>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                "Stellar UI has come a long way. Smooth as butter. The AI features actually help for a change instead of just being bloat."
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    } 
+  </main>
+  
+  <app-landing-footer />
+</div>

@@ -3,44 +3,31 @@
   <main class="grow">
     <app-hero-section>
       <div class="w-full max-w-2xl mt-8">
-        <div
-          class="relative flex items-center w-full h-14 md:h-16 rounded-xl shadow-xl shadow-blue-900/5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all"
-        >
+        <div class="relative flex items-center w-full h-14 md:h-16 rounded-xl shadow-xl shadow-blue-900/5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent transition-all">
           <div class="pl-5 text-slate-400">
             <app-icon name="search" />
           </div>
-          <input
-            class="peer h-full w-full border-none bg-transparent px-4 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 text-base md:text-lg focus:outline-none"
-            placeholder="Search for laptops, phones, or monitors..."
-          />
+          <input class="peer h-full w-full border-none bg-transparent px-4 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 text-base md:text-lg focus:outline-none" placeholder="Search for laptops, phones, or monitors..." />
           <div class="pr-2">
-            <button
-              class="h-10 md:h-12 px-6 rounded-lg bg-primary hover:bg-blue-700 text-white font-bold text-sm md:text-base transition-colors"
-            >
+            <button [routerLink]="['/products']" class="h-10 md:h-12 px-6 rounded-lg bg-primary hover:bg-blue-700 text-white font-bold text-sm md:text-base transition-colors">
               Search
             </button>
           </div>
         </div>
         <div class="mt-3 flex gap-4 justify-center text-sm text-slate-500 dark:text-slate-400">
           <span>Popular:</span>
-          <a class="hover:text-primary underline decoration-dotted" href="#">iPhone 15</a>
-          <a class="hover:text-primary underline decoration-dotted" href="#">RTX 4090</a>
-          <a class="hover:text-primary underline decoration-dotted" href="#">MacBook Air</a>
+          <a [routerLink]="['/products', '103']" class="hover:text-primary underline decoration-dotted cursor-pointer">iPhone 15</a>
+          <a [routerLink]="['/products', '101']" class="hover:text-primary underline decoration-dotted cursor-pointer">RTX 4090</a>
+          <a [routerLink]="['/products', '101']" class="hover:text-primary underline decoration-dotted cursor-pointer">MacBook Air</a>
         </div>
       </div>
     </app-hero-section>
 
-    <section
-      class="px-6 py-16 lg:px-20 bg-white dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800"
-    >
+    <section class="px-6 py-16 lg:px-20 bg-white dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800">
       <div class="max-w-7xl mx-auto">
         <div class="mb-10 text-center md:text-left">
-          <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Why SmartCompare?
-          </h2>
-          <p class="mt-2 text-slate-500 dark:text-slate-400">
-            Advanced tools designed to simplify your buying decision.
-          </p>
+          <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Why SmartCompare?</h2>
+          <p class="mt-2 text-slate-500 dark:text-slate-400">Advanced tools designed to simplify your buying decision.</p>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           @for (f of features; track f.icon) {
@@ -52,56 +39,43 @@
 
     <section class="px-6 py-16 lg:px-20 bg-background-light dark:bg-background-dark">
       <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+        <div class="flex items-end justify-between mb-8">
           <div>
-            <h2 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Trending Comparisons
-            </h2>
-            <p class="mt-2 text-slate-500 dark:text-slate-400">
-              Top picked devices by our community this week.
-            </p>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Trending Now</h2>
+            <p class="text-slate-500 dark:text-slate-400">Top-rated devices by our community this week</p>
           </div>
-          <a class="text-primary font-semibold hover:underline flex items-center gap-1" href="#">
-            View all categories
-            <app-icon name="arrow_forward" size="lg" />
+          <a [routerLink]="['/products']" class="hidden sm:flex items-center gap-1 text-primary font-bold text-sm hover:gap-2 transition-all cursor-pointer">
+            View all categories <app-icon name="arrow_forward" size="sm" />
           </a>
         </div>
+        
         @if (trendingProducts$ | async; as products) {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @for (p of products; track p.title) {
-              <app-product-card
-                [title]="p.title"
-                [subtitle]="p.subtitle"
-                [price]="p.price"
-                [rating]="p.rating"
-                [imageUrl]="p.imageUrl"
-                [imageAlt]="p.imageAlt"
-                [showMatchBadge]="p.showMatchBadge"
-              />
+              <div 
+                [routerLink]="['/products', p.id]" 
+                class="relative block group cursor-pointer h-full border-2 transition-all duration-300 rounded-2xl"
+                [class.border-primary]="selectedIds().includes(p.id)"
+                [class.border-transparent]="!selectedIds().includes(p.id)"
+              >
+                <app-product-card
+                  [title]="p.title"
+                  [subtitle]="p.subtitle"
+                  [price]="p.price"
+                  [rating]="p.rating"
+                  [imageUrl]="p.imageUrl"
+                  [imageAlt]="p.imageAlt"
+                  [showMatchBadge]="p.showMatchBadge"
+                  [isSelected]="selectedIds().includes(p.id)"
+                  (toggleSelect)="toggleCompare(p.id)"
+                />
+              </div>
             }
           </div>
         } @else {
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @for (s of [0, 1, 2, 3]; track s) {
-              <div
-                class="animate-pulse bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700"
-              >
-                <div class="h-48 bg-slate-200 dark:bg-slate-700"></div>
-                <div class="p-4 space-y-3">
-                  <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
-                  <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
-                  <div class="flex items-center justify-between pt-2">
-                    <div class="h-5 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
-                    <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-10"></div>
-                  </div>
-                  <div class="pt-3 border-t border-slate-100 dark:border-slate-700">
-                    <div class="flex items-center gap-2">
-                      <div class="h-4 w-4 rounded bg-slate-200 dark:bg-slate-700"></div>
-                      <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <div class="animate-pulse bg-white dark:bg-slate-800 rounded-2xl h-64 border border-slate-200 dark:border-slate-700"></div>
             }
           </div>
         }
@@ -111,4 +85,20 @@
     <app-trust-section [items]="trustItems" />
   </main>
   <app-landing-footer />
+
+  @if (selectedIds().length >= 2) {
+    <div class="fixed bottom-10 right-10 z-[999] animate-bounce">
+      <button 
+        (click)="goToComparison()"
+        class="flex items-center gap-3 bg-primary hover:bg-blue-700 text-white px-8 py-4 rounded-full shadow-2xl transition-all transform hover:scale-105 border-2 border-white/20 backdrop-blur-md"
+      >
+        <span class="material-symbols-outlined text-2xl">compare_arrows</span>
+        <div class="text-left">
+          <span class="block text-xs font-medium opacity-90">{{ selectedIds().length }} Items Selected</span>
+          <span class="block text-sm font-bold">Compare Now</span>
+        </div>
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+  }
 </div>
