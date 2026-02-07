@@ -32,19 +32,24 @@ export class LandingPage {
   private readonly productListingService = inject(ProductListingService);
   private readonly router = inject(Router);
 
-  // Directly reference the signal
   selectedIds = this.productListingService.selectedIds;
   trendingProducts$ = this.productListingService.getTrendingProducts();
 
-  // FIX: Removed 'event' parameter. 
-  // The ProductCardComponent handles the DOM event stopping. 
-  // We just need to know WHICH product to toggle.
   toggleCompare(id: number) {
     this.productListingService.toggleComparison(id);
   }
 
   goToComparison() {
     this.router.navigate(['/compare']);
+  }
+
+  // NEW: Search Navigation
+  onSearch(query: string) {
+    if (query.trim()) {
+      this.router.navigate(['/products'], { queryParams: { q: query } });
+    } else {
+      this.router.navigate(['/products']);
+    }
   }
 
   protected readonly features = [

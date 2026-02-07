@@ -2,13 +2,21 @@
   class="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-xl hover:shadow-blue-900/5 transition-all h-full flex flex-col"
 >
   <div class="relative h-48 overflow-hidden bg-gray-100 dark:bg-slate-700 shrink-0">
+    
     @if (showMatchBadge()) {
       <div
-        class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-slate-900/90 backdrop-blur text-primary text-xs font-bold px-2 py-1 rounded-full border border-primary/20 flex items-center gap-1 shadow-sm"
+        class="absolute top-3 left-3 z-10 px-3 py-1 rounded-full text-[10px] font-black text-white uppercase tracking-wider flex items-center gap-1 shadow-lg"
+        style="background: linear-gradient(135deg, #135bec 0%, #7c3aed 100%);"
       >
-        <app-icon name="auto_awesome" size="sm" /> Match
+        <span class="material-symbols-outlined !text-[14px]">bolt</span> 
+        {{ matchScore() || 98 }}% AI Match
       </div>
     }
+
+    <button class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors z-10">
+      <span class="material-symbols-outlined !text-[20px]">favorite</span>
+    </button>
+
     <div
       class="w-full h-full bg-cover bg-center group-hover:scale-105 transition-transform duration-500"
       [attr.data-alt]="imageAlt()"

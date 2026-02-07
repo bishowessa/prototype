@@ -48,7 +48,7 @@
                     <span class="material-symbols-outlined !text-lg">favorite</span>
                     Add to Wishlist
                   </button>
-                  <button [routerLink]="['/compare']" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all">
+                  <button (click)="compareProduct(product.id)" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-bold text-sm hover:shadow-lg hover:shadow-primary/20 transition-all">
                     <span class="material-symbols-outlined !text-lg">compare_arrows</span>
                     Compare
                   </button>

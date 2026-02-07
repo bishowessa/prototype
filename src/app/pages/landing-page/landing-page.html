@@ -7,9 +7,17 @@
           <div class="pl-5 text-slate-400">
             <app-icon name="search" />
           </div>
-          <input class="peer h-full w-full border-none bg-transparent px-4 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 text-base md:text-lg focus:outline-none" placeholder="Search for laptops, phones, or monitors..." />
+          <input 
+            #searchInput
+            (keyup.enter)="onSearch(searchInput.value)"
+            class="peer h-full w-full border-none bg-transparent px-4 text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 text-base md:text-lg focus:outline-none" 
+            placeholder="Search for laptops, phones, or monitors..." 
+          />
           <div class="pr-2">
-            <button [routerLink]="['/products']" class="h-10 md:h-12 px-6 rounded-lg bg-primary hover:bg-blue-700 text-white font-bold text-sm md:text-base transition-colors">
+            <button 
+              (click)="onSearch(searchInput.value)"
+              class="h-10 md:h-12 px-6 rounded-lg bg-primary hover:bg-blue-700 text-white font-bold text-sm md:text-base transition-colors"
+            >
               Search
             </button>
           </div>
@@ -54,7 +62,7 @@
             @for (p of products; track p.title) {
               <div 
                 [routerLink]="['/products', p.id]" 
-                class="relative block group cursor-pointer h-full border-2 transition-all duration-300 rounded-2xl"
+                class="block group cursor-pointer h-full border-2 transition-all duration-300 rounded-2xl"
                 [class.border-primary]="selectedIds().includes(p.id)"
                 [class.border-transparent]="!selectedIds().includes(p.id)"
               >
@@ -65,7 +73,7 @@
                   [rating]="p.rating"
                   [imageUrl]="p.imageUrl"
                   [imageAlt]="p.imageAlt"
-                  [showMatchBadge]="p.showMatchBadge"
+                  [showMatchBadge]="false"
                   [isSelected]="selectedIds().includes(p.id)"
                   (toggleSelect)="toggleCompare(p.id)"
                 />

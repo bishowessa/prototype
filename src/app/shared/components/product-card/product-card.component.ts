@@ -16,18 +16,19 @@ export class ProductCardComponent {
   readonly imageUrl = input.required<string>();
   readonly imageAlt = input<string>('');
   readonly showMatchBadge = input<boolean>(false);
+  
+  // New Input for the % Score
+  readonly matchScore = input<number | undefined>(undefined);
 
   // --- Selection Logic ---
   readonly isSelected = input<boolean>(false);
   @Output() toggleSelect = new EventEmitter<void>();
 
-  // Use this to stop the click from reaching the RouterLink
   preventPropagation(event: Event) {
     event.stopPropagation();
-    event.preventDefault(); // Added this to stop default label behavior if needed
+    event.preventDefault();
   }
 
-  // Handle the logic separately
   onToggle() {
     this.toggleSelect.emit();
   }
