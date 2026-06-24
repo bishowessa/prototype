@@ -19,6 +19,26 @@
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-full: 9999px;
+
+  /* ── Custom Keyframes ── */
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-fade-up: fadeUp 0.8s ease-out both;
+  --animate-glow: glow 4s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-18px); }
+  }
+
+  @keyframes fadeUp {
+    0%   { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glow {
+    0%, 100% { opacity: 0.4; }
+    50%       { opacity: 0.8; }
+  }
 }
 
 body {

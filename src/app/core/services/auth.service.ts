@@ -1,55 +1,41 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, of, throwError } from 'rxjs';
-import type { User } from '@app/core/models';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-const LOGIN_DELAY_MS = 1000;
-const REGISTER_DELAY_MS = 1000;
-
-/** Dummy "invalid" email for simulated login failure */
-const INVALID_LOGIN_EMAIL = 'wrong@example.com';
-
-function dummyUser(email: string): User {
-  const now = new Date().toISOString();
-  return {
-    id: 1,
-    created_at: now,
-    updated_at: now,
-    type: 0,
-    email,
-    password: '',
-  };
+// Adjust interfaces based on your exact Spring Boot response
+export interface AuthResponse {
+  token: string;
+  user?: any; 
 }
 
-export interface AuthResult {
-  user: User;
-  token: string;
+export interface PreferencePayload {
+  productCategoryId: number; // e.g., 1 for Phone, 2 for Laptop
+  preferences: string;       // JSON stringified object
 }
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class AuthService {
-  login(email: string, password: string): Observable<AuthResult> {
-    if (!password.trim() || email.trim().toLowerCase() === INVALID_LOGIN_EMAIL) {
-      return throwError(() => new Error('Invalid email or password')).pipe(
-        delay(LOGIN_DELAY_MS)
-      );
-    }
-    return of({
-      user: dummyUser(email),
-      token: `dummy-jwt-${Date.now()}`,
-    }).pipe(delay(LOGIN_DELAY_MS));
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = 'http://localhost:8080/api/v1'; // Adjust if auth is not under /api/v1
+
+  register(email: string, password: string): Observable<AuthResponse> {
+    return this.http.post<any>(`${this.apiUrl}/auth/register`, { email, password }).pipe(
+      // Unwraps ApiResponse if your backend uses it, otherwise just returns the response
+      map(res => res.data ? res.data : res) 
+    );
   }
 
-  register(email: string, password: string): Observable<AuthResult> {
-    if (!password.trim() || password.length < 6) {
-      return throwError(
-        () => new Error('Password must be at least 6 characters')
-      ).pipe(delay(REGISTER_DELAY_MS));
-    }
-    return of({
-      user: dummyUser(email),
-      token: `dummy-jwt-${Date.now()}`,
-    }).pipe(delay(REGISTER_DELAY_MS));
+  login(email: string, password: string): Observable<AuthResponse> {
+    return this.http.post<any>(`${this.apiUrl}/auth/login`, { email, password }).pipe(
+      map(res => res.data ? res.data : res)
+    );
+  }
+
+  savePreferences(payload: PreferencePayload[]): Observable<any> {
+    // Because the interceptor is active, this request will automatically include the Bearer token!
+    return this.http.post(`${this.apiUrl}/preferences`, payload);
   }
 }

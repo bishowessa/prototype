@@ -52,14 +52,13 @@ export class OnboardingLayoutComponent implements OnInit, OnDestroy {
     this.updateStepFromRoute();
 
     // Subscribe to route paramMap changes
-    // Check both current route and first child route (for nested routing)
     const routeToSubscribe = this.route.firstChild || this.route;
 
     routeToSubscribe.paramMap.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.updateStepFromRoute();
     });
 
-    // Also listen to navigation end events to catch all route changes
+    // Listen to navigation end events
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),

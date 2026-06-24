@@ -1,138 +1,78 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
-import { delay } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 import type { ProductCardDto } from '@app/core/models';
 
 export interface Product extends ProductCardDto {
   id: number;
-  matchScore?: number; // Added optional score
+  matchScore?: number;
+  type?: string; 
+}
+
+export interface SpecGroup {
+  name: string;
+  icon: string;
+  items: { label: string; value: string }[];
+}
+
+export interface VendorInfo {
+  name: string;
+  price: string;
+  url: string;
+  availability: string;
+  letter: string;
+}
+
+export interface ProductDetails extends Product {
+  reviews: number;
+  specGroups: SpecGroup[];
+  vendors: VendorInfo[];
+}
+
+export interface AiSummary {
+  summaryText: string;
+  requiresLogin?: boolean; 
+}
+
+export interface ProductSearchFilters {
+  type: string;
+  q?: string;
+  brands?: string;
+  maxPrice?: number;
+  storage?: string;
+  ram?: string;
+  sort?: string;
+}
+
+export interface FilterMetadata {
+  brands: string[];
+  minPrice: number;
+  maxPrice: number;
+  specs: { [key: string]: string[] }; 
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string;
+  errorCode: string | null;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductListingService {
-  // === MASTER DATA ===
-  private readonly products: Product[] = [
-    {
-      id: 101,
-      title: 'MacBook Pro M3',
-      subtitle: '14-inch, 1TB SSD',
-      price: '$1,599',
-      rating: '4.9',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDOwWRjVUMMdRVV-sH8V9OdFk0AiAS6JF3FYaSTDa9GjH1xb50ufSHPou6t6ynkQqte34BzlngxNj8XJ51qex0OYRi2DYiR6XWMexeQB8kt9siFnOF15-5iVF782hNR_FaxOF2tRa9eovj1YGOe06hHYgX8yO4e9r9rce-xp4VGtI60ie5coAE6x8RlfrAZOMo70OK1W2E9yXTSqe0emKOGHmpPMUPVm6EuQLFQj2jonJQIlF0pbp6UuPlbxIqz0uDpr7Yp3xijyH8',
-      imageAlt: 'MacBook Pro laptop',
-      showMatchBadge: true,
-      matchScore: 98, // Added
-    },
-    {
-      id: 102,
-      title: 'Dell XPS 15',
-      subtitle: 'OLED, i9 Processor',
-      price: '$1,299',
-      rating: '4.7',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDANfDc8eW81jl4npIkoS3sgK7HR5EG1psVRtK2M7i1bMBGTivvAEAAtO1zhL-m55j01Nk4NIOi_HCEfKgTezBDvTK0Qe5Y5CfpaBXwZ-t3-p-fh3d-B5aTHZeg42YUl2tXb2cKqE1JdtZO19I51wyPtq2D1G9yabV5_xZFLoaeIaBO8aeH8d6_1IsFb4blSk7b9X9NSkBF9G3otO952fDiW22SmV-tai4ppkK9cpS3em_hBGtLbTkLsEPgZ1GLH80tWwok8jU8LJ4',
-      imageAlt: 'Dell XPS 15',
-      showMatchBadge: true,
-      matchScore: 94, // Added
-    },
-    {
-      id: 103,
-      title: 'iPhone 15 Pro',
-      subtitle: 'Titanium, 256GB',
-      price: '$999',
-      rating: '4.8',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDepKB7P43C-j6rjVMyos_Pe8FX3KANJ6VxNKtMX_-9EeKN3rLRZ13MGnbJ2PF2AmNc0wkJtjjXrP8L0lx8CcC8BXDb4f80mQuAhxkXQz3ukxVx2PNk3yzcS0u1dJyHKsuPLNLra5FwfSwla0ELwnl0dv5DiXFySUabPXHrFKcLWdIrDCMf4Wf3-h4HUEiRcS7xNthgHphPxv8AaRHrCaPhKNJE1QsXMbXcnj-qPcuwOnjcxbpviXmDJwXiZTaUNmOgDoc0YIsuv0I',
-      imageAlt: 'Titanium smartphone back view',
-      showMatchBadge: true,
-      matchScore: 96, // Added
-    },
-    {
-      id: 104,
-      title: 'Samsung S24 Ultra',
-      subtitle: 'Titanium Grey, 512GB',
-      price: '$1,299',
-      rating: '4.8',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCaFKC4xUEJkAs0ERGbGvGSaFoPuWca8U2ZQC1XhpcVhBHZyWbl1xHrZDDwibZahDE56_1Jxi4LzQJDDqfw6aCv9vxWcUkzcxiGqPuFO8XHKPNUl2tt2rfWILA3i5FNiURVCY-ZpRwCuPF2mgkrH9_lKosOpiQr8Vwr1-bDyvLT6TP3gOn2KbAKee2UFJs6QWhuqvlYJ3BCvS9Dxjv8vjQ9gLsuAA6oNosPnYzZcJTmXfVdaWHOAfvKicrZlczZ_31aQ5siPODumIU',
-      imageAlt: 'Android smartphone with stylus pen',
-      showMatchBadge: false,
-    },
-    {
-      id: 1,
-      title: 'Optic Max Camera Phone',
-      subtitle: 'Stellar Series',
-      price: '$1,099',
-      rating: '4.9',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDwBBWIm2l1zm_ctPm_mRWnXQD-M3f-xB7BZWDPkl32gcPGOyKFA7_UgJWV22pWVqcgSg2poBQnRcfUnO3pnuj8tzeTNXWRAVAC1qr7BfnMovuHwFbYeS0FlGpUbl6wl1hE7tnJlHiQzj3LcHdKw_GkgF1ruz5OjCkG8MTEeUj30PcAR_sk_htYi0AGquGHIuYajb3BSYB7Rj2BvN-Isuh-mNDqzqb-vmBrDB-79q-21QMVsTC-NI_VsGIY94UxRkQNrCUaOZVQZcs',
-      imageAlt: 'Optic Max Camera Phone',
-      showMatchBadge: true,
-      matchScore: 98, // Added
-    },
-    {
-      id: 2,
-      title: 'Galaxy X Edition Pro',
-      subtitle: 'Galaxy Edition',
-      price: '$1,199',
-      rating: '4.2',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuD_PDWreYqST9NDf-RIeDKxtvGLQaksCnX2OqZBVUTWf_hiDz0V0O7GzuoHIgTMSQvhxrAkEoTgLZVi-tQp7flEggBmq1qtSEgs4nyBL0TFduna6NNVI1i0X_YI34Oc-zewZO1Lewwbo5ZZuQoF8D8pbaKfYJFdOocRWT1tSFBwJ_xnQKNkzZO6En1-zCIffi_RxNue74NUSCFWuBHd0_UzaIpGv6mWkCt4tSLmLZB3Xwg8eUTESw4j2cquGacYSpdPJ1wiLL7LfHQ',
-      imageAlt: 'Galaxy X Edition Pro',
-      showMatchBadge: false,
-    },
-    {
-      id: 3,
-      title: 'Nexus Pro Fold',
-      subtitle: 'Nexus Prime',
-      price: '$1,799',
-      rating: '4.7',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCce2XzRK0FV8TGLniOF87-C8lsaktTmRpBJoc2mnnocZMk813QmsL4bz3FCsN1ssg1YuPTzDmpy-k-5gB_akvWKDyzqN3CZ3GWPzyOXHy7prC-7U-07Me7-VI7gGklT465MXDjl6DORdN_yzqxTEtS8x051EKa_sS80lxEzrtu0bbJc0Xut1ZdRCuo369fb4pmD1VKIVKJUXgp1xk-ZIE7wibMtqJ5-FVmsVTO6g5rTl8uAVCig2V-nnGu8xTSfF3RnAj1sbsf0zg',
-      imageAlt: 'Nexus Pro Fold',
-      showMatchBadge: true,
-      matchScore: 92, // Added
-    },
-    {
-      id: 4,
-      title: 'Swift S14 Lite',
-      subtitle: 'Lite Series',
-      price: '$699',
-      rating: '4.0',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuApwaGEUUb_zBSeojDQriyg5_GunOhwRGMc3b2t5sqhnw33JjDsDNb8gyNnnY7bF-24E9REHO9sE9iUU4UUULn3O7HQ-3z2mddCmU4DMPp9XXyh6EfMPTUqw1vOq2Ex9Vc08YGOLmIgFm9Bg4VoOJNg6J9Brv0i4h0qmHM6ygMJ1Hm9BzyPRBVREymJOPfb0nBddaJ-n-AUMrnSe7_XqtAq840IaUFjQEoEWQnDItzKTLR4DokdBXqU3rG3eJbrMp-Y4VnrMocQdEk',
-      imageAlt: 'Swift S14 Lite',
-      showMatchBadge: false,
-    },
-    {
-      id: 5,
-      title: 'Titan Shield Ultra',
-      subtitle: 'Rugged Pro',
-      price: '$849',
-      rating: '4.1',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8XlmcJLleJE0K77pm-GUAJwaM7y9siu-GUoOtl4aPZ-mWS6HJ98agNkHGJGdXrPwYtzY8dxk8Zyd-ICufZVkCQ8V_jgTir7TYhYx_y5DyOVtCYnbiw7H5MelHIOy0KFIQraKvY3s2cD7RvWVav0IQl_gXdZFcp01kRPfE-zyh5U0EyP9pGs2vwYcDYigQEnzGnw1Q934z7TAZLlhsuFDBeabLBcSdHqLpBI3KaFKHLQxVfn_6C32HAEi2zjWGjV_1koUZoZP2J3E',
-      imageAlt: 'Titan Shield Ultra',
-      showMatchBadge: false,
-    },
-    {
-      id: 6,
-      title: 'Lumix Vision 5G',
-      subtitle: 'Photography Expert',
-      price: '$1,299',
-      rating: '4.8',
-      imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBdKnoN62rj5oT6KgcG-X06lRFYiL7rSsMLIQf2biJfPqHJYBfSktTYEG5PVugzIurwhoF1JaPTFTTcpd6W1c8UjmEi1NS20-zazvc8b9X7f4ccHAtF1KyXQoR2pCaDUt46TkBaQoxSwl3dJU4HUW12K7gjk_1czT852ys37pLHo1qN-EeQryY4BAFpvi16uXtWZz6ijEnux4fnIHnr9m8uajkFeCbrZLZb_3WzJ7R7T_ycd8-PFnlPa03ZzUGiK8YD9UtLTgVDV-4',
-      imageAlt: 'Lumix Vision 5G',
-      showMatchBadge: true,
-      matchScore: 89, // Added
-    },
-  ];
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = 'http://localhost:8080/api/v1'; 
 
-  // === SELECTION STATE ===
   selectedIds = signal<number[]>([]);
 
   toggleComparison(id: number) {
-    this.selectedIds.update(current => {
-      if (current.includes(id)) {
-        return current.filter(itemId => itemId !== id);
-      } else {
-        return [...current, id];
-      }
-    });
+    this.selectedIds.update(current => 
+      current.includes(id) ? current.filter(itemId => itemId !== id) : [...current, id]
+    );
   }
 
   setSelection(id: number) {
@@ -143,22 +83,151 @@ export class ProductListingService {
     this.selectedIds.set([]);
   }
 
-  getSelectedProducts(): Product[] {
-    const ids = this.selectedIds();
-    return this.products.filter(p => ids.includes(p.id));
+  private mapToFrontendProduct(backendItem: any): Product {
+    if (!backendItem) return {} as Product;
+
+    let specs: any = {};
+    try {
+      specs = backendItem.specs ? JSON.parse(backendItem.specs) : {};
+    } catch (e) {}
+
+    let finalPrice = 'Check Price';
+    if (backendItem.price) {
+      finalPrice = `${backendItem.price} EGP`;
+    } else if (specs.price) {
+      finalPrice = `${specs.price} EGP`;
+    }
+
+    const finalImage = backendItem.imageUrl || specs.imageUrl || specs.url_image || 'https://placehold.co/400x400?text=No+Image';
+    const finalRating = backendItem.rating || specs.rating || 'N/A';
+
+    return {
+      id: backendItem.id,
+      title: backendItem.name || 'Unknown Product',
+      subtitle: backendItem.brand || backendItem.categoryName || '',
+      type: backendItem.categorySlug, // Will now be 'phone' from backend
+      price: finalPrice,
+      rating: finalRating.toString(),
+      imageUrl: finalImage,
+      imageAlt: backendItem.name || 'Product image',
+      showMatchBadge: backendItem.showMatchBadge || false,
+      matchScore: backendItem.matchScore
+    };
+  }
+
+  private mapToProductDetails(backendItem: any): ProductDetails {
+    const baseProduct = this.mapToFrontendProduct(backendItem);
+    
+    let parsed: any = {};
+    try { 
+      parsed = backendItem.specs ? JSON.parse(backendItem.specs) : {}; 
+    } catch (e) { 
+      console.error('Failed to parse specs', e); 
+    }
+
+    const vendors: VendorInfo[] = [];
+    if (parsed.source || parsed.url || parsed.price) {
+      const vendorName = parsed.source || 'Official Store';
+      vendors.push({
+        name: vendorName,
+        letter: vendorName.charAt(0).toUpperCase(),
+        price: parsed.price ? `${parsed.price} EGP` : baseProduct.price,
+        url: parsed.url || '#',
+        availability: 'In Stock' 
+      });
+    }
+
+    const groupsMap = new Map<string, SpecGroup>();
+    const getGroup = (name: string, icon: string) => {
+      if (!groupsMap.has(name)) groupsMap.set(name, { name, icon, items: [] });
+      return groupsMap.get(name)!;
+    };
+
+    const ignoreKeys = ['url', 'source', 'price', 'id', 'name', 'brand'];
+
+    for (const [key, value] of Object.entries(parsed)) {
+      if (value === null || value === '' || Array.isArray(value)) continue;
+      if (ignoreKeys.includes(key.toLowerCase())) continue;
+
+      let label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+      let groupName = 'General';
+      let icon = 'info';
+
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.includes('camera')) { groupName = 'Camera'; icon = 'photo_camera'; }
+      else if (lowerKey.includes('battery')) { groupName = 'Battery'; icon = 'battery_charging_full'; }
+      else if (lowerKey.includes('display') || lowerKey.includes('screen')) { groupName = 'Display'; icon = 'smartphone'; }
+      else if (lowerKey.includes('os') || lowerKey.includes('processor')) { groupName = 'Platform'; icon = 'memory'; }
+      else if (lowerKey.includes('width') || lowerKey.includes('height')) { groupName = 'Design'; icon = 'straighten'; }
+      else if (lowerKey.includes('usb') || lowerKey.includes('sim')) { groupName = 'Connectivity'; icon = 'wifi'; }
+
+      getGroup(groupName, icon).items.push({ label, value: String(value) });
+    }
+
+    return {
+      ...baseProduct,
+      reviews: backendItem.review_count || backendItem.reviews || 0,
+      specGroups: Array.from(groupsMap.values()),
+      vendors
+    };
   }
 
   getTrendingProducts(): Observable<Product[]> {
-    const trending = this.products.filter(p => p.id >= 101); 
-    return of(trending).pipe(delay(100));
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/products/trending`).pipe(
+      map(response => (response.data || []).map(item => this.mapToFrontendProduct(item))),
+      catchError(() => of([]))
+    );
   }
 
-  getProducts(): Observable<Product[]> {
-    return of(this.products).pipe(delay(1000));
+  getFilterMetadata(type: string): Observable<FilterMetadata> {
+    return this.http.get<ApiResponse<FilterMetadata>>(`${this.apiUrl}/filters`, {
+      params: new HttpParams().set('type', type)
+    }).pipe(
+      map(response => response.data || { brands: [], minPrice: 0, maxPrice: 5000, specs: {} })
+    );
+  }
+  
+  getProducts(filters: ProductSearchFilters): Observable<Product[]> {
+    let params = new HttpParams().set('type', filters.type);
+    if (filters.q) params = params.set('q', filters.q);
+    if (filters.brands) params = params.set('brands', filters.brands);
+    if (filters.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
+    if (filters.storage) params = params.set('storage', filters.storage);
+    if (filters.ram) params = params.set('ram', filters.ram);
+    if (filters.sort) params = params.set('sort', filters.sort);
+    
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/products`, { params }).pipe(
+      map(response => (response.data || []).map(item => this.mapToFrontendProduct(item))),
+      catchError(() => of([]))
+    );
   }
 
-  getProductById(id: number): Observable<Product | undefined> {
-    const product = this.products.find((p) => p.id === id);
-    return of(product);
+  getProductById(id: number): Observable<ProductDetails> {
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/products/${id}`).pipe(
+      map(response => {
+        if (!response.data) throw new Error('Not found');
+        return this.mapToProductDetails(response.data);
+      })
+    );
+  }
+
+  getProductsByIds(ids: number[]): Observable<ProductDetails[]> {
+    const params = new HttpParams().set('ids', ids.join(','));
+    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/products/batch`, { params }).pipe(
+      map(response => (response.data || []).map(item => this.mapToProductDetails(item)))
+    );
+  }
+
+  getAiSummaryForProduct(id: number): Observable<AiSummary> {
+    return this.http.get<ApiResponse<AiSummary>>(`${this.apiUrl}/products/${id}/ai-summary`).pipe(
+      map(response => response.data || { summaryText: 'AI summary unavailable.' })
+    );
+  }
+
+  getAiComparisonSummary(ids: number[]): Observable<AiSummary> {
+    const params = new HttpParams().set('ids', ids.join(','));
+    return this.http.get<ApiResponse<AiSummary>>(`${this.apiUrl}/products/compare/ai-summary`, { params }).pipe(
+      map(response => response.data || { summaryText: 'AI comparison unavailable.' })
+    );
   }
 }

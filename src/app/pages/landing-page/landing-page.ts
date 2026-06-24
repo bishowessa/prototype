@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
+import { catchError, of } from 'rxjs'; // <-- NEW IMPORTS
 import { IconComponent } from '@app/shared/components/icon/icon.component';
 import { NavbarComponent } from '@app/shared/components/navbar/navbar.component';
 import { LandingFooterComponent } from '@app/shared/components/landing-footer/landing-footer.component';
@@ -33,7 +34,14 @@ export class LandingPage {
   private readonly router = inject(Router);
 
   selectedIds = this.productListingService.selectedIds;
-  trendingProducts$ = this.productListingService.getTrendingProducts();
+  
+  // NEW: Catch errors so the skeleton loader doesn't spin forever
+  trendingProducts$ = this.productListingService.getTrendingProducts().pipe(
+    catchError((err) => {
+      console.error('Failed to load trending products', err);
+      return of([]); // Return an empty array on failure
+    })
+  );
 
   toggleCompare(id: number) {
     this.productListingService.toggleComparison(id);
@@ -43,7 +51,6 @@ export class LandingPage {
     this.router.navigate(['/compare']);
   }
 
-  // NEW: Search Navigation
   onSearch(query: string) {
     if (query.trim()) {
       this.router.navigate(['/products'], { queryParams: { q: query } });

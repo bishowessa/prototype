@@ -1,129 +1,76 @@
 <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
   <app-navbar />
-  
-  <main class="flex-grow">
+  <main class="grow">
     <div class="max-w-7xl mx-auto px-6 lg:px-20 py-8">
       <div class="flex flex-col lg:flex-row gap-8">
-        
         <aside class="w-full lg:w-64 shrink-0 space-y-8">
           <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Brand</h3>
-            <div class="space-y-3">
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <input checked="" class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox"/>
-                <span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-primary">Stellar</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <input class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox"/>
-                <span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-primary">Nova</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <input class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox"/>
-                <span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-primary">Apex</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <input class="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary" type="checkbox"/>
-                <span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-primary">Zenith</span>
-              </label>
+            <h3 class="text-sm font-bold uppercase text-slate-400 mb-4">Brand</h3>
+            <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
+              @for (brand of availableFilters().brands; track brand) {
+                <label class="flex items-center gap-3 cursor-pointer group">
+                  <input type="checkbox" [checked]="activeFilters.brands.includes(brand)" (change)="toggleArrayFilter('brands', brand)" class="w-5 h-5 rounded border-slate-300 text-primary" />
+                  <span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-primary capitalize">{{ brand }}</span>
+                </label>
+              }
             </div>
           </div>
+
           <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Price Range</h3>
+            <h3 class="text-sm font-bold uppercase text-slate-400 mb-4">Price Range</h3>
             <div class="px-2">
-              <input class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-primary" max="2000" min="0" type="range" value="1200"/>
-              <div class="flex justify-between mt-2">
-                <span class="text-xs font-bold text-slate-500">$0</span>
-                <span class="text-xs font-bold text-primary">$1,200</span>
-                <span class="text-xs font-bold text-slate-500">$2,000+</span>
+              <input type="range" [min]="availableFilters().minPrice" [max]="availableFilters().maxPrice" [value]="activeFilters.maxPrice" (change)="onPriceChange($event)" class="w-full accent-primary" />
+              <div class="flex justify-between mt-2 text-xs font-bold">
+                <span>${{ availableFilters().minPrice }}</span>
+                <span class="text-primary">${{ activeFilters.maxPrice }}</span>
               </div>
             </div>
           </div>
-          <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Storage</h3>
-            <div class="grid grid-cols-1 gap-2">
-              <button class="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-800 rounded-xl hover:border-primary hover:text-primary transition-all text-left">128GB</button>
-              <button class="px-4 py-2 text-sm font-medium border-2 border-primary text-primary bg-primary/5 rounded-xl text-left">256GB</button>
-              <button class="px-4 py-2 text-sm font-medium border border-slate-200 dark:border-slate-800 rounded-xl hover:border-primary hover:text-primary transition-all text-left">512GB</button>
+
+          @if (availableFilters().specs['storage']) {
+            <div>
+              <h3 class="text-sm font-bold uppercase text-slate-400 mb-4">Storage</h3>
+              <div class="grid grid-cols-1 gap-2">
+                @for (opt of availableFilters().specs['storage']; track opt) {
+                  <button (click)="toggleArrayFilter('storage', opt)" [class.border-primary]="activeFilters.storage.includes(opt)" class="px-4 py-2 text-sm border rounded-xl">{{ opt }}</button>
+                }
+              </div>
             </div>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">RAM</h3>
-            <div class="flex flex-wrap gap-2">
-              <button class="px-3 py-1.5 text-xs font-bold border border-slate-200 dark:border-slate-800 rounded-lg hover:border-primary">8GB</button>
-              <button class="px-3 py-1.5 text-xs font-bold border-2 border-primary text-primary rounded-lg">12GB</button>
-              <button class="px-3 py-1.5 text-xs font-bold border border-slate-200 dark:border-slate-800 rounded-lg hover:border-primary">16GB</button>
-            </div>
-          </div>
+          }
         </aside>
 
-        <div class="flex-grow">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 class="text-3xl font-black text-slate-900 dark:text-white capitalize">{{ pageTitle() }}</h1>
-              <p class="text-slate-500 text-sm font-medium">Showing {{ products().length }} results</p>
+        <div class="grow">
+          <div class="bg-white dark:bg-slate-900 border rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-center shadow-sm">
+            <select [(ngModel)]="activeFilters.type" (change)="onTypeChange()" class="bg-transparent border-none text-sm font-bold outline-none">
+              <option value="phone">Phones</option>
+              <option value="laptop">Laptops</option>
+              <option value="accessory">Accessories</option>
+            </select>
+            <div class="grow flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-2">
+              <span class="material-symbols-outlined text-slate-400">search</span>
+              <input type="text" [(ngModel)]="activeFilters.q" (keyup.enter)="onSearch()" placeholder="Search..." class="w-full bg-transparent border-none text-sm outline-none">
             </div>
-            <div class="flex items-center gap-3">
-              <span class="text-sm font-semibold text-slate-400">Sort by:</span>
-              <select class="text-sm font-bold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-lg focus:ring-primary focus:border-primary py-2 pl-4 pr-10">
-                <option>Best Match</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
-                <option>Newest Arrivals</option>
-              </select>
-            </div>
+            <button (click)="onSearch()" class="bg-primary text-white px-8 py-2 rounded-xl font-bold">Search</button>
           </div>
-          
+
           @if (isLoading()) {
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              @for (s of [1, 2, 3, 4, 5, 6]; track s) {
-                <div class="animate-pulse bg-white dark:bg-slate-900 rounded-2xl h-[420px] border border-slate-200 dark:border-slate-800 p-4">
-                  <div class="bg-slate-200 dark:bg-slate-800 h-48 rounded-xl mb-4"></div>
-                  <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4 mb-2"></div>
-                  <div class="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/2 mb-4"></div>
-                  <div class="h-8 bg-slate-200 dark:bg-slate-800 rounded w-full mt-auto"></div>
-                </div>
-              }
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              @for (s of [1,2,3]; track s) { <div class="animate-pulse bg-slate-200 h-64 rounded-2xl"></div> }
+            </div>
+          } @else if (products().length === 0) {
+            <div class="text-center py-20 border-2 border-dashed rounded-xl">
+              <h3 class="text-xl font-bold">No products found</h3>
+              <button (click)="onTypeChange()" class="mt-4 bg-primary text-white px-6 py-2 rounded-lg">Clear Filters</button>
             </div>
           } @else {
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              @for (product of products(); track product.id) {
-                <div 
-                  [routerLink]="['/products', product.id]" 
-                  class="block group cursor-pointer h-full border-2 transition-all duration-300 rounded-2xl"
-                  [class.border-primary]="selectedIds().includes(product.id)"
-                  [class.border-transparent]="!selectedIds().includes(product.id)"
-                >
-                  <app-product-card
-                    [title]="product.title"
-                    [subtitle]="product.subtitle"
-                    [price]="product.price"
-                    [rating]="product.rating"
-                    [imageUrl]="product.imageUrl"
-                    [imageAlt]="product.imageAlt"
-                    [showMatchBadge]="product.showMatchBadge"
-                    [matchScore]="product.matchScore"
-                    [isSelected]="selectedIds().includes(product.id)"
-                    (toggleSelect)="toggleCompare(product.id)"
-                  />
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              @for (p of products(); track p.id) {
+                <div [routerLink]="['/products', p.id]" class="border-2 rounded-2xl" [class.border-primary]="selectedIds().includes(p.id)">
+                  <app-product-card [title]="p.title" [subtitle]="p.subtitle" [price]="p.price" [rating]="p.rating" [imageUrl]="p.imageUrl" [isSelected]="selectedIds().includes(p.id)" (toggleSelect)="toggleCompare(p.id)" />
                 </div>
               }
             </div>
           }
-          
-          <div class="mt-12 flex items-center justify-center gap-2">
-            <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:text-primary hover:border-primary transition-colors">
-              <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-            <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
-            <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:text-primary hover:border-primary transition-colors font-bold">2</button>
-            <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:text-primary hover:border-primary transition-colors font-bold">3</button>
-            <span class="text-slate-400 px-2">...</span>
-            <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:text-primary hover:border-primary transition-colors font-bold">12</button>
-            <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:text-primary hover:border-primary transition-colors">
-              <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-          </div>
-
         </div>
       </div>
     </div>
@@ -132,7 +79,7 @@
   <app-landing-footer />
 
   @if (selectedIds().length >= 2) {
-    <div class="fixed bottom-10 right-10 z-[999] animate-bounce">
+    <div class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[999] animate-[bounce_1s_infinite]">
       <button 
         (click)="goToComparison()"
         class="flex items-center gap-3 bg-primary hover:bg-blue-700 text-white px-8 py-4 rounded-full shadow-2xl transition-all transform hover:scale-105 border-2 border-white/20 backdrop-blur-md"

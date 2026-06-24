@@ -5,8 +5,7 @@ import { IconComponent } from '@app/shared/components/icon/icon.component';
 import { FormInputComponent } from '@app/shared/components/form-input/form-input.component';
 import { FormCheckboxComponent } from '@app/shared/components/form-checkbox/form-checkbox.component';
 import { AuthService } from '@app/core/services/auth.service';
-import { StorageService } from '@app/core/services/storage.service';
-import type { StorageType } from '@app/core/services/storage.service';
+import { StorageService, StorageType } from '@app/core/services/storage.service';
 
 @Component({
   selector: 'app-login',
@@ -29,12 +28,15 @@ export class LoginComponent {
     this.loginError = false;
     this.loginLoading = true;
     const storageType: StorageType = this.remember ? 'local' : 'session';
+    
     this.authService.login(this.email, this.password).subscribe({
       next: (result) => {
-        this.storage.setItem('user', result.user, storageType);
-        this.storage.setItem('token', result.token, storageType);
+        // Save token to correct storage type based on "Remember Me"
+        if (result.token) this.storage.setItem('token', result.token, storageType);
+        if (result.user) this.storage.setItem('user', JSON.stringify(result.user), storageType);
+        
         this.loginLoading = false;
-        this.router.navigate(['/']);
+        this.router.navigate(['/']); // Go to home page
       },
       error: () => {
         this.loginError = true;

@@ -12,15 +12,7 @@ import { StorageService } from '@app/core/services/storage.service';
 @Component({
   selector: 'app-signup',
   standalone: true,
-  imports: [
-    FormsModule,
-    IconComponent,
-    NavbarComponent,
-    LandingFooterComponent,
-    FormCheckboxComponent,
-    FormInputComponent,
-    RouterLink,
-  ],
+  imports: [FormsModule, IconComponent, NavbarComponent, LandingFooterComponent, FormCheckboxComponent, FormInputComponent, RouterLink],
   templateUrl: './signup.component.html',
 })
 export class SignUpComponent {
@@ -50,16 +42,20 @@ export class SignUpComponent {
       this.signupError = 'You must agree to the Terms of Service and Privacy Policy.';
       return;
     }
+    
     this.signupLoading = true;
     this.authService.register(this.email, this.password).subscribe({
       next: (result) => {
-        this.storage.setItem('user', result.user, 'local');
-        this.storage.setItem('token', result.token, 'local');
+        // Save the raw token string
+        if (result.token) this.storage.setItem('token', result.token, 'local');
+        if (result.user) this.storage.setItem('user', JSON.stringify(result.user), 'local');
+        
         this.signupLoading = false;
         this.router.navigate(['/onboarding']);
       },
-      error: (err: Error) => {
-        this.signupError = err?.message ?? 'Registration failed. Please try again.';
+      error: (err) => {
+        // Display nice error message if email already exists
+        this.signupError = err.error?.message || 'Registration failed. Please try again.';
         this.signupLoading = false;
       },
     });
