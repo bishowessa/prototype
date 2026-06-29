@@ -1,73 +1,260 @@
-<div class="max-w-3xl w-full">
+<div class="max-w-6xl w-full">
+
   <div class="text-center mb-10">
-    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-4">All set! Let's review.</h1>
+
+    <h1 class="text-4xl font-black text-slate-900 dark:text-white mb-4">
+      @if (viewMode()) {
+        Your preferences
+      } @else {
+        All set! Let's review.
+      }
+    </h1>
+
     <p class="text-slate-500 dark:text-slate-400 text-lg">
-      We've tailored your experience based on these preferences.
+      @if (viewMode()) {
+        Review your saved setup below. Tap <strong class="font-semibold text-slate-700 dark:text-slate-200">Edit</strong> on any card to update that category.
+      } @else {
+        We've tailored your experience based on these preferences. Tap Edit on any card to fine-tune.
+      }
     </p>
+
   </div>
 
-  <div class="flex flex-col gap-6 mb-12">
-    @for (summary of deviceSummaries; track summary.type) {
-      <div
-        class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group"
+
+
+  @if (viewMode() && isLoadingPreferences()) {
+
+    <div
+
+      class="mb-12 rounded-2xl border border-slate-200 bg-white px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900"
+
+      aria-busy="true"
+
+    >
+
+      <p class="text-slate-500 dark:text-slate-400">Loading your saved preferences...</p>
+
+    </div>
+
+  } @else if (preferencesLoadError()) {
+
+    <div class="mb-12 rounded-2xl border border-red-200 bg-red-50 px-6 py-8 text-center dark:border-red-900/40 dark:bg-red-900/20">
+
+      <p class="text-sm text-red-700 dark:text-red-300">{{ preferencesLoadError() }}</p>
+
+      <button
+        type="button"
+        (click)="loadPreferencesFromApi()"
+        class="mt-4 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/30"
       >
-        <div
-          class="absolute top-0 left-0 w-1 h-full"
-          [class.bg-primary]="summary.type === 'laptop' || summary.type === 'phone'"
-          [class.bg-primary/40]="summary.type !== 'laptop' && summary.type !== 'phone'"
-        ></div>
-        <div class="flex items-start">
-          <div class="flex gap-5">
+        Retry
+      </button>
+
+    </div>
+
+  } @else if (deviceSummaries().length === 0) {
+
+    <div
+
+      class="mb-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center dark:border-slate-600 dark:bg-slate-900/50"
+
+    >
+
+      <p class="text-slate-500 dark:text-slate-400">
+        @if (viewMode()) {
+          You have not set up any preferences yet.
+        } @else {
+          No devices selected yet. Go back to choose your devices first.
+        }
+      </p>
+
+      <button
+        type="button"
+        (click)="viewMode() ? startPreferenceSetup() : editCategory(2)"
+        class="mt-4 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-bold text-primary transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/30"
+      >
+        <app-icon name="edit" size="sm" />
+        {{ viewMode() ? 'Set up my preferences' : 'Select Devices' }}
+      </button>
+
+    </div>
+
+  } @else {
+
+    <div class="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+      @for (summary of deviceSummaries(); track summary.type) {
+
+        <article
+
+          class="relative flex h-full min-h-60 flex-col rounded-2xl border bg-white p-6 shadow-sm transition-all dark:bg-slate-900"
+
+          [class.border-slate-200]="summary.status === 'configured'"
+
+          [class.dark:border-slate-800]="summary.status === 'configured'"
+
+          [class.border-dashed]="summary.status !== 'configured'"
+
+          [class.border-slate-300]="summary.status !== 'configured'"
+
+          [class.dark:border-slate-700]="summary.status !== 'configured'"
+
+          [class.opacity-80]="summary.status !== 'configured'"
+
+          [class.hover:shadow-md]="summary.status === 'configured'"
+
+        >
+
+          <div
+
+            class="absolute left-0 top-0 h-full w-1 rounded-l-2xl"
+
+            [class.bg-primary]="summary.status === 'configured'"
+
+            [class.bg-slate-300]="summary.status !== 'configured'"
+
+            [class.dark:bg-slate-600]="summary.status !== 'configured'"
+
+          ></div>
+
+
+
+          <button
+
+            type="button"
+
+            (click)="editCategory(summary.stepIndex, summary.type)"
+
+            class="absolute right-4 top-4 inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/30"
+
+            [attr.aria-label]="'Edit ' + summary.title + ' preferences'"
+
+          >
+
+            <app-icon name="edit" size="sm" />
+
+            Edit
+
+          </button>
+
+
+
+          <div class="mb-4 flex items-start gap-4 pr-16">
+
             <div
-              class="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-primary"
+
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-primary dark:bg-blue-900/30"
+
             >
+
               <app-icon [name]="summary.icon" size="xl" />
+
             </div>
-            <div>
-              <h3
-                class="text-xl font-bold text-slate-900 dark:text-white mb-2 uppercase tracking-wide text-sm"
-              >
+
+            <div class="min-w-0 flex-1">
+
+              <h3 class="text-lg font-bold text-slate-900 dark:text-white">
+
                 {{ summary.title }}
+
               </h3>
-              <div class="flex flex-wrap gap-2">
-                @for (tag of summary.tags; track tag) {
-                  <span
-                    class="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-full text-xs font-medium"
-                  >
-                    {{ tag }}
-                  </span>
-                }
-              </div>
+
+              <p class="mt-0.5 text-xs font-medium uppercase tracking-wide text-slate-400">
+
+                {{ summary.statusLabel }}
+
+              </p>
+
             </div>
+
           </div>
-        </div>
+
+
+
+          @if (summary.tags.length > 0) {
+
+            <div class="mt-auto flex flex-wrap gap-2">
+
+              @for (tag of summary.tags; track $index) {
+
+                <span
+
+                  class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+
+                >
+
+                  {{ tag }}
+
+                </span>
+
+              }
+
+            </div>
+
+          }
+
+        </article>
+
+      }
+
+    </div>
+
+  }
+
+
+
+  @if (!viewMode()) {
+    <div
+      class="mb-10 flex items-start gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-6 dark:border-blue-900/30 dark:bg-blue-900/20"
+    >
+      <div
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-white"
+      >
+        <app-icon name="info" size="md" />
       </div>
+      <div>
+        <h4 class="font-bold text-slate-900 dark:text-white">Review before saving</h4>
+        <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+          Your preferences will be saved to your account when you finish. All budgets are in EGP.
+          You can return anytime via the navbar to edit them again.
+        </p>
+      </div>
+    </div>
+  }
+
+
+
+  @if (submitError() && !viewMode()) {
+
+    <p class="mb-4 text-center text-sm text-red-600 dark:text-red-400">{{ submitError() }}</p>
+
+  }
+
+
+
+  <div class="flex flex-col gap-4">
+    @if (viewMode()) {
+      <button
+        type="button"
+        class="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-base font-bold text-white shadow-xl shadow-blue-500/25 transition-all hover:bg-blue-700"
+        (click)="goHome()"
+      >
+        Back to browsing
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="flex w-full items-center justify-center gap-3 rounded-2xl bg-primary py-5 text-xl font-bold text-white shadow-xl shadow-blue-500/25 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+        [disabled]="isSubmitting()"
+        (click)="onFinish()"
+      >
+        {{ isSubmitting() ? 'Saving preferences...' : 'Finish & Explore Products' }}
+        @if (!isSubmitting()) {
+          <app-icon name="arrow_forward" size="md" />
+        }
+      </button>
     }
   </div>
 
-  <div
-    class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 mb-10 flex items-start gap-4"
-  >
-    <div class="flex-shrink-0 w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white">
-      <span class="material-symbols-outlined">check_circle</span>
-    </div>
-    <div>
-      <h4 class="font-bold text-emerald-900 dark:text-emerald-400">Settings Saved Successfully</h4>
-      <p class="text-emerald-800 dark:text-emerald-500/80 text-sm mt-1 leading-relaxed">
-        Your personalized profile has been created. Don't worry, you can refine these settings or add
-        more devices at any time from your dashboard.
-      </p>
-    </div>
-  </div>
-
-  <div class="flex flex-col gap-4">
-    <button
-      type="button"
-      class="w-full py-5 bg-primary hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-xl shadow-blue-500/25 text-xl flex items-center justify-center gap-3"
-      (click)="onFinish()"
-    >
-      Finish & Explore Products
-      <span class="material-symbols-outlined">arrow_forward</span>
-    </button>
-  </div>
 </div>
+

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { BatteryPerformanceInputComponent } from '../../components/battery-performance-input.component';
 import { RamChoiceInputComponent } from '../../components/ram-choice-input.component';
@@ -30,6 +30,9 @@ import {
   templateUrl: './onboarding-laptop-preferences-step.component.html',
 })
 export class OnboardingLaptopPreferencesStepComponent implements OnInit {
+  @Input() submitLabel = 'Next Step';
+  @Input() submitIcon = 'arrow_forward';
+  @Input() isSaving = false;
   @Output() readonly save = new EventEmitter<LaptopPreferencesPayload>();
 
   private readonly onboardingState = inject(OnboardingStateService);

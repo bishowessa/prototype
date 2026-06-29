@@ -1,0 +1,162 @@
+<div class="mb-6 lg:mb-8">
+  <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-3xl">Users</h1>
+  <p class="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400 lg:text-base">
+    Review faculty and student accounts. Expand a row to inspect category preferences stored as JSON.
+  </p>
+</div>
+
+@if (error()) {
+  <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300">
+    {{ error() }}
+  </div>
+}
+
+@if (deleteError()) {
+  <div class="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-900/20 dark:text-red-300">
+    {{ deleteError() }}
+  </div>
+}
+
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+  <div class="flex flex-col gap-2 border-b border-slate-200 px-4 py-4 dark:border-slate-700 sm:px-6 lg:px-6">
+    <h2 class="text-lg font-bold text-slate-900 dark:text-white">All Accounts</h2>
+    <p class="text-sm text-slate-500 dark:text-slate-400">
+      {{ totalElements() }} registered user{{ totalElements() === 1 ? '' : 's' }}
+      @if (loading()) {
+        <span> · Loading…</span>
+      }
+    </p>
+  </div>
+
+  <div class="w-full overflow-x-auto">
+    <table class="w-full min-w-[24rem] text-left text-sm lg:min-w-180">
+      <thead class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-900/60">
+        <tr>
+          <th class="px-4 py-3.5 font-semibold lg:px-6">Email</th>
+          <th class="px-4 py-3.5 font-semibold lg:px-6">Role</th>
+          <th class="hidden px-4 py-3.5 font-semibold lg:table-cell lg:px-6">Preferences</th>
+          <th class="px-4 py-3.5 text-right font-semibold lg:px-6">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+        @if (!loading() && users().length === 0) {
+          <tr>
+            <td colspan="4" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">
+              No users found.
+            </td>
+          </tr>
+        }
+
+        @for (user of users(); track user.id) {
+          <tr class="align-top transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/40">
+            <td class="max-w-xs px-4 py-4 lg:px-6">
+              <p class="truncate font-medium text-slate-900 dark:text-white" [title]="user.email">
+                {{ user.email }}
+              </p>
+              <p class="mt-0.5 text-xs text-slate-400">ID {{ user.id }}</p>
+            </td>
+            <td class="px-4 py-4 lg:px-6">
+              @if (user.type === 'ADMIN') {
+                <span class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-1 text-xs font-bold text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                  <app-icon name="shield_person" size="sm" />
+                  ADMIN
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                  <app-icon name="person" size="sm" />
+                  USER
+                </span>
+              }
+            </td>
+            <td class="hidden px-6 py-4 lg:table-cell">
+              @if (preferenceCount(user) === 0) {
+                <span class="text-sm italic text-slate-400">No preferences set</span>
+              } @else {
+                <button
+                  type="button"
+                  (click)="toggleExpand(user.id)"
+                  class="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-blue-50 dark:border-slate-600 dark:hover:bg-blue-900/20"
+                >
+                  <app-icon [name]="expandedUserId() === user.id ? 'expand_less' : 'expand_more'" size="sm" />
+                  {{ preferenceCount(user) }} categor{{ preferenceCount(user) === 1 ? 'y' : 'ies' }}
+                </button>
+              }
+            </td>
+            <td class="px-4 py-4 text-right lg:px-6">
+              @if (user.type !== 'ADMIN') {
+                <button
+                  type="button"
+                  (click)="deleteUser(user)"
+                  [disabled]="deletingUserId() === user.id"
+                  class="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900/60 dark:hover:bg-red-900/20"
+                >
+                  <app-icon name="delete" size="sm" />
+                  {{ deletingUserId() === user.id ? 'Deleting…' : 'Delete' }}
+                </button>
+              } @else {
+                <span class="text-xs text-slate-400">Protected</span>
+              }
+            </td>
+          </tr>
+
+          @if (expandedUserId() === user.id) {
+            <tr>
+              <td colspan="4" class="bg-slate-50 px-6 py-5 dark:bg-slate-900/50">
+                <div class="space-y-4">
+                  @for (pref of user.preferences; track pref.id) {
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+                      <div class="mb-3 flex items-center gap-2">
+                        <span class="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-primary dark:bg-blue-900/40">
+                          {{ pref.categoryName }}
+                        </span>
+                        <span class="text-xs text-slate-400">{{ pref.categorySlug }}</span>
+                      </div>
+                      <dl class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        @for (entry of parsePreferences(pref.preferences); track entry.key) {
+                          <div class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/50">
+                            <dt class="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                              {{ entry.key }}
+                            </dt>
+                            <dd class="mt-0.5 text-sm font-medium text-slate-800 dark:text-slate-200">
+                              {{ entry.value }}
+                            </dd>
+                          </div>
+                        }
+                      </dl>
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  @if (totalPages() > 0) {
+    <div class="flex flex-col gap-3 border-t border-slate-200 px-4 py-4 dark:border-slate-700 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-6">
+      <p class="text-sm text-slate-500 dark:text-slate-400">
+        Page {{ currentPage() + 1 }} of {{ totalPages() }}
+      </p>
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="goToPreviousPage()"
+          [disabled]="!canGoPrevious() || loading()"
+          class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-900/40"
+        >
+          Previous
+        </button>
+        <button
+          type="button"
+          (click)="goToNextPage()"
+          [disabled]="!canGoNext() || loading()"
+          class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-900/40"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  }
+</div>

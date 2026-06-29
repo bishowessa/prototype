@@ -3,10 +3,24 @@
   description="Fine-tune preferences for the devices you selected."
   (back)="onBack()"
 >
+  @if (saveError()) {
+    <p class="mb-4 text-center text-sm text-red-600 dark:text-red-400">{{ saveError() }}</p>
+  }
+
   @if (currentDevice() === 'laptop') {
-    <app-onboarding-laptop-preferences-step (save)="onSave($event)" />
+    <app-onboarding-laptop-preferences-step
+      [submitLabel]="submitLabel()"
+      [submitIcon]="submitIcon()"
+      [isSaving]="isSaving()"
+      (save)="onSave($event)"
+    />
   } @else if (currentDevice() === 'phone') {
-    <app-onboarding-phone-preferences-step (save)="onSave($event)" />
+    <app-onboarding-phone-preferences-step
+      [submitLabel]="submitLabel()"
+      [submitIcon]="submitIcon()"
+      [isSaving]="isSaving()"
+      (save)="onSave($event)"
+    />
   } @else {
     <div class="text-center text-slate-500 dark:text-slate-400 py-16">
       No device preferences to configure. You can go back and select devices or continue.

@@ -32,8 +32,14 @@ import { StepNavigationButtonComponent } from '@app/shared/components/step-navig
           <div
             class="pt-8 flex items-center justify-end border-t border-slate-100 dark:border-slate-800"
           >
-            <app-step-navigation-button variant="primary" type="button" (click)="onSubmit()">
-              Next Step
+            <app-step-navigation-button
+              variant="primary"
+              type="button"
+              [disabled]="isSaving"
+              [icon]="submitIcon"
+              (click)="onSubmit()"
+            >
+              {{ isSaving ? 'Saving...' : submitLabel }}
             </app-step-navigation-button>
           </div>
         </div>
@@ -45,7 +51,10 @@ export class BaseDevicePreferencesComponent {
   @Input() title!: string;
   @Input() description!: string;
   @Input() form?: FormGroup;
-  @Output() readonly save = new EventEmitter<any>();
+  @Input() submitLabel = 'Next Step';
+  @Input() submitIcon = 'arrow_forward';
+  @Input() isSaving = false;
+  @Output() readonly save = new EventEmitter<void>();
 
   protected onSubmit(): void {
     if (this.form) {

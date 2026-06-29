@@ -5,7 +5,6 @@ import { catchError, of } from 'rxjs'; // <-- NEW IMPORTS
 import { IconComponent } from '@app/shared/components/icon/icon.component';
 import { NavbarComponent } from '@app/shared/components/navbar/navbar.component';
 import { LandingFooterComponent } from '@app/shared/components/landing-footer/landing-footer.component';
-import { HeroSectionComponent } from '@app/shared/components/hero-section/hero-section.component';
 import { FeatureCardComponent } from '@app/shared/components/feature-card/feature-card.component';
 import { ProductCardComponent } from '@app/shared/components/product-card/product-card.component';
 import type { TrustItem } from '@app/shared/components/trust-section/trust-section.component';
@@ -22,7 +21,6 @@ import { ProductListingService } from '@app/core/services/product-listing.servic
     IconComponent,
     NavbarComponent,
     LandingFooterComponent,
-    HeroSectionComponent,
     FeatureCardComponent,
     ProductCardComponent,
     TrustSectionComponent,

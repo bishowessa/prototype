@@ -1,47 +1,59 @@
-import { Component, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { IconComponent } from '@app/shared/components/icon/icon.component';
 import { FormInputComponent } from '@app/shared/components/form-input/form-input.component';
-import { FormCheckboxComponent } from '@app/shared/components/form-checkbox/form-checkbox.component';
 import { AuthService } from '@app/core/services/auth.service';
-import { StorageService, StorageType } from '@app/core/services/storage.service';
+import { AuthStateService } from '@app/core/services/auth-state.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, IconComponent, FormInputComponent, FormCheckboxComponent, RouterLink],
+  imports: [FormsModule, IconComponent, FormInputComponent, RouterLink],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
   private readonly authService = inject(AuthService);
-  private readonly storage = inject(StorageService);
+  private readonly authState = inject(AuthStateService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected email = '';
   protected password = '';
-  protected remember = false;
-  protected loginError = false;
-  protected loginLoading = false;
+  protected readonly loginError = signal(false);
+  protected readonly loginLoading = signal(false);
+  protected readonly returnUrl = this.resolveReturnUrl();
 
   protected onSubmit(): void {
-    this.loginError = false;
-    this.loginLoading = true;
-    const storageType: StorageType = this.remember ? 'local' : 'session';
-    
+    this.loginError.set(false);
+    this.loginLoading.set(true);
+
     this.authService.login(this.email, this.password).subscribe({
       next: (result) => {
-        // Save token to correct storage type based on "Remember Me"
-        if (result.token) this.storage.setItem('token', result.token, storageType);
-        if (result.user) this.storage.setItem('user', JSON.stringify(result.user), storageType);
-        
-        this.loginLoading = false;
-        this.router.navigate(['/']); // Go to home page
+        this.authState.establishSessionFromLogin(result, this.email);
+        this.loginLoading.set(false);
+
+        if (result.role === 'ADMIN') {
+          void this.router.navigate(['/admin/dashboard']);
+          return;
+        }
+
+        void this.router.navigateByUrl(this.returnUrl);
       },
       error: () => {
-        this.loginError = true;
-        this.loginLoading = false;
+        this.loginError.set(true);
+        queueMicrotask(() => this.loginLoading.set(false));
       },
     });
+  }
+
+  private resolveReturnUrl(): string {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+    if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+      return returnUrl;
+    }
+
+    return '/';
   }
 }

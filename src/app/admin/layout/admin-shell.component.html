@@ -1,0 +1,84 @@
+<div class="flex h-screen bg-background-light text-slate-900 dark:bg-background-dark dark:text-white">
+  @if (mobileNavOpen()) {
+    <button
+      type="button"
+      class="fixed inset-0 z-40 bg-slate-900/50 lg:hidden"
+      aria-label="Close navigation menu"
+      (click)="closeMobileNav()"
+    ></button>
+  }
+
+  <header
+    class="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 lg:hidden"
+  >
+    <button
+      type="button"
+      (click)="toggleMobileNav()"
+      class="flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+      aria-label="Open navigation menu"
+    >
+      <app-icon name="menu" size="sm" />
+    </button>
+    <span class="text-sm font-bold text-slate-900 dark:text-white">Admin Panel</span>
+    <div class="h-10 w-10" aria-hidden="true"></div>
+  </header>
+
+  <aside
+    class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col border-r border-slate-200 bg-white transition-transform duration-200 ease-in-out dark:border-slate-800 dark:bg-slate-900 lg:static lg:z-auto lg:translate-x-0 lg:shrink-0"
+    [class.translate-x-0]="mobileNavOpen()"
+  >
+    <div class="border-b border-slate-200 px-6 py-5 dark:border-slate-800">
+      <div class="flex items-center gap-3">
+        <div class="text-primary">
+          <app-icon name="manage_search" size="lg" />
+        </div>
+        <div>
+          <h2 class="text-base font-bold text-slate-900 dark:text-white">SmartCompare</h2>
+          <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Admin Panel</p>
+        </div>
+      </div>
+    </div>
+
+    @if (authState.email()) {
+      <div class="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Signed in as</p>
+        <p class="mt-1 truncate text-sm font-medium text-slate-700 dark:text-slate-200">
+          {{ authState.email() }}
+        </p>
+      </div>
+    }
+
+    <nav class="flex-1 overflow-y-auto px-4 py-6">
+      <ul class="space-y-1">
+        @for (link of navLinks; track link.path) {
+          <li>
+            <a
+              [routerLink]="link.path"
+              routerLinkActive="bg-blue-50 text-primary dark:bg-blue-900/30 dark:text-blue-300"
+              (click)="closeMobileNav()"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-primary dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              <app-icon [name]="link.icon" size="sm" />
+              {{ link.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="border-t border-slate-200 p-4 dark:border-slate-800">
+      <button
+        type="button"
+        (click)="logout()"
+        class="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+      >
+        <app-icon name="logout" size="sm" />
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="min-w-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-6 pt-16 lg:p-8 lg:pt-8">
+    <router-outlet></router-outlet>
+  </main>
+</div>

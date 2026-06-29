@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { PriceRangeInputComponent } from '../../components/price-range-input.component';
 import { PrimaryUseInputComponent } from '../../components/primary-use-input.component';
@@ -30,6 +30,9 @@ import {
   templateUrl: './onboarding-phone-preferences-step.component.html',
 })
 export class OnboardingPhonePreferencesStepComponent implements OnInit {
+  @Input() submitLabel = 'Next Step';
+  @Input() submitIcon = 'arrow_forward';
+  @Input() isSaving = false;
   @Output() readonly save = new EventEmitter<PhonePreferencesPayload>();
 
   private readonly onboardingState = inject(OnboardingStateService);

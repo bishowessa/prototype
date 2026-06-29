@@ -1,5 +1,12 @@
-import { Component, EventEmitter, OnInit, Output, inject, computed, effect } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, inject, computed, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap } from 'rxjs/operators';
 import { OnboardingStateService } from '@app/core/services/onboarding-state.service';
+import { PreferenceService } from '@app/core/services/preference.service';
+import {
+  buildPreferenceJsonForCategory,
+  resolveCategoryIdForDeviceKey,
+} from '@app/core/mappers/preference.mapper';
 import { DEVICE_STRATEGIES } from '../../strategies/device-preference-strategy';
 import { OnboardingLaptopPreferencesStepComponent } from '../onboarding-laptop-preferences-step/onboarding-laptop-preferences-step.component';
 import { OnboardingPhonePreferencesStepComponent } from '../onboarding-phone-preferences-step/onboarding-phone-preferences-step.component';
@@ -23,50 +30,63 @@ export class OnboardingDevicePreferencesStepComponent implements OnInit {
   @Output() readonly continue = new EventEmitter<void>();
 
   private readonly onboardingState = inject(OnboardingStateService);
+  private readonly preferenceService = inject(PreferenceService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  private readonly focusKey = this.route.snapshot.queryParamMap.get('focus') ?? undefined;
+  protected readonly editMode = this.route.snapshot.queryParamMap.get('view') === 'true';
+
+  protected readonly isSaving = signal(false);
+  protected readonly saveError = signal('');
+
+  protected readonly submitLabel = computed(() =>
+    this.editMode ? 'Save Preferences' : 'Next Step',
+  );
+
+  protected readonly submitIcon = computed(() => (this.editMode ? 'save' : 'arrow_forward'));
 
   protected currentDevice = computed(() => {
-    // Read the state signal directly to ensure reactivity
-    // Accessing state$ signal ensures the computed re-evaluates when state changes
     const state = this.onboardingState.state$();
-    
-    // Calculate incomplete devices inline to ensure reactivity
-    // Filter to only device types (laptop, phone) - exclude accessories
     const deviceTypes = ['laptop', 'phone'];
+
+    if (this.focusKey && deviceTypes.includes(this.focusKey) && state.selectedDevices.includes(this.focusKey)) {
+      return this.focusKey;
+    }
+
     const incompleteDeviceTypes: string[] = [];
     const selectedDeviceTypes: string[] = [];
-    
+
     for (const device of state.selectedDevices) {
-      // Only check device types, skip accessories
       if (!deviceTypes.includes(device)) {
         continue;
       }
-      
+
       selectedDeviceTypes.push(device);
-      
+
       const variants = state.variants[device] ?? [];
       const hasAny = variants.length > 0;
       const allFinished = hasAny && variants.every((v) => v.status === 'finished');
-      
+
       if (!allFinished) {
         incompleteDeviceTypes.push(device);
       }
     }
-    
-    // First priority: show incomplete devices
+
     if (incompleteDeviceTypes.includes('laptop')) {
       return 'laptop';
-    } else if (incompleteDeviceTypes.includes('phone')) {
+    }
+    if (incompleteDeviceTypes.includes('phone')) {
       return 'phone';
     }
-    
-    // Second priority: if all are finished but devices are selected, show the first selected device
-    // This allows users to review/edit their preferences even if marked as finished
+
     if (selectedDeviceTypes.includes('laptop')) {
       return 'laptop';
-    } else if (selectedDeviceTypes.includes('phone')) {
+    }
+    if (selectedDeviceTypes.includes('phone')) {
       return 'phone';
     }
-    
+
     return null;
   });
 
@@ -76,9 +96,7 @@ export class OnboardingDevicePreferencesStepComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Don't auto-advance immediately - let the user see the step
-    // The template will show the appropriate device component or a message
-    // Auto-advance only happens when all devices are complete (handled in pickNextDeviceOrContinue)
+    // Step content is driven by computed state.
   }
 
   protected onBack(): void {
@@ -88,34 +106,71 @@ export class OnboardingDevicePreferencesStepComponent implements OnInit {
   protected onSave(payload: LaptopPreferencesPayload | PhonePreferencesPayload): void {
     const device = this.currentDevice();
     const strategy = this.strategy();
-    
-    if (device && strategy) {
-      strategy.savePreferences(this.onboardingState, payload);
-      
-      // Check for next incomplete device after saving
-      // Use queueMicrotask to ensure state has updated and computed signals have re-evaluated
-      // This runs after the current synchronous code but before the next render cycle
-      queueMicrotask(() => {
-        this.pickNextDeviceOrContinue();
-      });
+
+    if (!device || !strategy) {
+      return;
     }
+
+    strategy.savePreferences(this.onboardingState, payload);
+
+    if (this.editMode) {
+      this.persistCategoryAndReturnToSummary(device, { ...payload });
+      return;
+    }
+
+    queueMicrotask(() => {
+      this.pickNextDeviceOrContinue();
+    });
+  }
+
+  private persistCategoryAndReturnToSummary(
+    deviceKey: string,
+    formData: Record<string, unknown>,
+  ): void {
+    this.isSaving.set(true);
+    this.saveError.set('');
+
+    const state = this.onboardingState.getState();
+
+    this.preferenceService
+      .getOptions()
+      .pipe(
+        switchMap((options) => {
+          const categoryId = resolveCategoryIdForDeviceKey(deviceKey, options);
+          if (categoryId == null) {
+            throw new Error(`No backend category found for "${deviceKey}".`);
+          }
+
+          const preferencesJson = buildPreferenceJsonForCategory(
+            deviceKey,
+            formData,
+            state.selectedProfileId,
+          );
+
+          return this.preferenceService.editPreference(categoryId, preferencesJson);
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          void this.router.navigate(['/onboarding', '5'], {
+            queryParams: { view: 'true' },
+          });
+        },
+        error: () => {
+          this.isSaving.set(false);
+          this.saveError.set('Failed to save preferences. Please try again.');
+        },
+      });
   }
 
   private pickNextDeviceOrContinue(): void {
-    // Re-check the state directly to see if there are more incomplete devices
     const { incompleteDevices } = this.onboardingState.getDeviceCompletionGroups();
-    
-    // Filter to only device types (laptop, phone) - exclude accessories
     const deviceTypes = ['laptop', 'phone'];
-    const incompleteDeviceTypes = incompleteDevices.filter(d => deviceTypes.includes(d));
-    
+    const incompleteDeviceTypes = incompleteDevices.filter((device) => deviceTypes.includes(device));
+
     if (incompleteDeviceTypes.length === 0) {
-      // All device preferences are complete, move to next step
       this.continue.emit();
     }
-    // If there are still incomplete devices, the computed signal will update
-    // and the template will automatically show the next device component
-    // We don't need to do anything here - Angular's change detection will handle it
   }
 }
-

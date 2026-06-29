@@ -1,7 +1,7 @@
 <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-  <main class="flex-grow flex items-center justify-center py-12 px-6">
+  <main class="grow flex items-center justify-center py-12 px-6">
     <div
-      class="w-full max-w-[440px] bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 p-8 md:p-10"
+      class="w-full max-w-110 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 p-8 md:p-10"
     >
       <div class="flex flex-col items-center gap-2 mb-8">
         <div class="flex items-center gap-3">
@@ -20,7 +20,7 @@
         </div>
       </div>
 
-      @if (loginError) {
+      @if (loginError()) {
         <p class="mb-4 text-sm text-red-600 dark:text-red-400">
           Invalid email or password. Please try again.
         </p>
@@ -44,25 +44,19 @@
           icon="lock"
           id="password"
         />
-        <app-form-checkbox
-          [(ngModel)]="remember"
-          name="remember"
-          id="remember"
-          label="Remember me for 30 days"
-        />
         <button
           type="submit"
-          [disabled]="loginLoading"
+          [disabled]="loginLoading()"
           class="w-full bg-primary hover:bg-blue-700 disabled:opacity-70 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2"
         >
-          {{ loginLoading ? 'Signing in...' : 'Log In' }}
+          {{ loginLoading() ? 'Signing in...' : 'Log In' }}
         </button>
       </form>
 
       <div class="mt-10 text-center">
         <p class="text-sm text-slate-500 dark:text-slate-400">
           Don't have an account?
-          <a routerLink="/signup" class="text-primary font-bold hover:underline ml-1">Sign Up</a>
+          <a [routerLink]="['/signup']" [queryParams]="{ returnUrl: returnUrl }" class="text-primary font-bold hover:underline ml-1">Sign Up</a>
         </p>
       </div>
     </div>

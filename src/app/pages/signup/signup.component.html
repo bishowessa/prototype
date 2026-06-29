@@ -1,6 +1,6 @@
 <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
   <app-navbar />
-  <main class="flex-grow flex items-center justify-center py-12 px-6 lg:px-20 relative">
+  <main class="grow flex items-center justify-center py-12 px-6 lg:px-20 relative">
     <div class="absolute inset-0 -z-10 opacity-40 dark:opacity-20 pointer-events-none">
       <div
         class="absolute top-0 right-0 w-1/2 h-1/2 bg-blue-100 dark:bg-blue-900/20 blur-[120px] rounded-full"
@@ -52,22 +52,6 @@
               id="confirm-password"
             />
           </div>
-          <app-form-checkbox
-            [(ngModel)]="terms"
-            name="terms"
-            id="terms"
-            labelClass="text-sm text-slate-500 dark:text-slate-400"
-            [alignTop]="true"
-          >
-            I agree to the
-            <a class="text-primary hover:underline" href="#" (click)="toggleTerms($event)"
-              >Terms of Service</a
-            >
-            and
-            <a class="text-primary hover:underline" href="#" (click)="toggleTerms($event)"
-              >Privacy Policy</a
-            >.
-          </app-form-checkbox>
           <button
             type="submit"
             [disabled]="signupLoading"
@@ -79,7 +63,7 @@
         <div class="mt-10 pt-8 border-t border-slate-100 dark:border-slate-800 text-center">
           <p class="text-slate-600 dark:text-slate-400">
             Already have an account?
-            <a routerLink="/login" class="text-primary font-bold hover:underline ml-1">Log In</a>
+            <a [routerLink]="['/login']" [queryParams]="{ returnUrl: returnUrl }" class="text-primary font-bold hover:underline ml-1">Log In</a>
           </p>
         </div>
       </div>
@@ -98,7 +82,7 @@
           <ul class="space-y-8">
             <li class="flex gap-4">
               <div
-                class="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-800 flex items-center justify-center text-blue-200"
+                class="shrink-0 w-12 h-12 rounded-xl bg-blue-800 flex items-center justify-center text-blue-200"
               >
                 <app-icon name="auto_awesome" customClass="!text-2xl" />
               </div>
@@ -113,7 +97,7 @@
 
             <li class="flex gap-4">
               <div
-                class="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-800 flex items-center justify-center text-blue-200"
+                class="shrink-0 w-12 h-12 rounded-xl bg-blue-800 flex items-center justify-center text-blue-200"
               >
                 <app-icon name="verified" customClass="!text-2xl" />
               </div>

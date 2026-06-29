@@ -1,24 +1,50 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { NavigationEnd, Router } from '@angular/router';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, filter, map } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { ToastService } from '@app/core/services/toast.service';
 import type { ProductCardDto } from '@app/core/models';
+import type {
+  ProductCardApi,
+  ProductDetailApi,
+  PagedResponse,
+  FilterPayloadApi,
+  AiSummaryPayloadApi,
+} from '@app/core/models/product-api.model';
+import {
+  normalizeCategorySlug,
+  mapProductCardsToProducts,
+  mapProductDetailToProductDetails,
+  mapFilterPayloadToMetadata,
+  mapAiSummaryPayload,
+} from '@app/core/mappers/product.mapper';
 
 export interface Product extends ProductCardDto {
   id: number;
   matchScore?: number;
-  type?: string; 
+  type?: string;
+  mainSpecs?: string[];
+}
+
+export interface SpecItem {
+  label: string;
+  value: string;
+  isEstimated?: boolean;
 }
 
 export interface SpecGroup {
   name: string;
   icon: string;
-  items: { label: string; value: string }[];
+  items: SpecItem[];
 }
 
 export interface VendorInfo {
   name: string;
   price: string;
+  priceValue?: number | null;
   url: string;
   availability: string;
   letter: string;
@@ -32,7 +58,14 @@ export interface ProductDetails extends Product {
 
 export interface AiSummary {
   summaryText: string;
-  requiresLogin?: boolean; 
+  requiresLogin?: boolean;
+}
+
+export interface ProductListingPage {
+  products: Product[];
+  page: number;
+  totalPages: number;
+  totalElements: number;
 }
 
 export interface ProductSearchFilters {
@@ -40,16 +73,35 @@ export interface ProductSearchFilters {
   q?: string;
   brands?: string;
   maxPrice?: number;
+  minPrice?: number;
   storage?: string;
   ram?: string;
   sort?: string;
+  page?: number;
+  size?: number;
+}
+
+/** Hard cap on products fetched per request — prevents massive payloads freezing the UI. */
+export const PRODUCT_LISTING_PAGE_SIZE = 12;
+
+/** Maps UI sort values to backend query params (`price_asc` / `price_desc` only). */
+export function mapListingSortToApi(sort?: string): string | undefined {
+  const normalized = (sort ?? '').trim().toLowerCase();
+
+  if (normalized === 'price_asc' || normalized === 'price_desc') {
+    return normalized;
+  }
+
+  // Best Match / recommended → omit `sort` so preference-based ranking can apply
+  // when no other explicit filters are present (per API contract).
+  return undefined;
 }
 
 export interface FilterMetadata {
   brands: string[];
   minPrice: number;
   maxPrice: number;
-  specs: { [key: string]: string[] }; 
+  specs: { [key: string]: string[] };
 }
 
 export interface ApiResponse<T> {
@@ -65,14 +117,56 @@ export interface ApiResponse<T> {
 })
 export class ProductListingService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/v1'; 
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(ToastService);
+  private readonly apiUrl = environment.apiBaseUrl;
 
   selectedIds = signal<number[]>([]);
 
+  private static readonly MAX_COMPARE = 4;
+
+  constructor() {
+    this.registerComparisonSelectionReset();
+  }
+
+  private registerComparisonSelectionReset(): void {
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((event) => {
+        if (!this.shouldPreserveComparisonSelection(event.urlAfterRedirects)) {
+          this.clearComparison();
+        }
+      });
+  }
+
+  /** Keep compare picks only while browsing products or viewing the compare page. */
+  private shouldPreserveComparisonSelection(url: string): boolean {
+    const path = url.split('?')[0].split('#')[0];
+
+    if (path === '/' || path === '/products' || path === '/compare') {
+      return true;
+    }
+
+    return /^\/products\/\d+$/.test(path);
+  }
+
   toggleComparison(id: number) {
-    this.selectedIds.update(current => 
-      current.includes(id) ? current.filter(itemId => itemId !== id) : [...current, id]
-    );
+    this.selectedIds.update((current) => {
+      if (current.includes(id)) {
+        return current.filter((itemId) => itemId !== id);
+      }
+
+      if (current.length >= ProductListingService.MAX_COMPARE) {
+        this.toast.showWarning('You can only compare up to 4 products at a time.');
+        return current;
+      }
+
+      return [...current, id];
+    });
   }
 
   setSelection(id: number) {
@@ -83,151 +177,137 @@ export class ProductListingService {
     this.selectedIds.set([]);
   }
 
-  private mapToFrontendProduct(backendItem: any): Product {
-    if (!backendItem) return {} as Product;
-
-    let specs: any = {};
-    try {
-      specs = backendItem.specs ? JSON.parse(backendItem.specs) : {};
-    } catch (e) {}
-
-    let finalPrice = 'Check Price';
-    if (backendItem.price) {
-      finalPrice = `${backendItem.price} EGP`;
-    } else if (specs.price) {
-      finalPrice = `${specs.price} EGP`;
-    }
-
-    const finalImage = backendItem.imageUrl || specs.imageUrl || specs.url_image || 'https://placehold.co/400x400?text=No+Image';
-    const finalRating = backendItem.rating || specs.rating || 'N/A';
-
-    return {
-      id: backendItem.id,
-      title: backendItem.name || 'Unknown Product',
-      subtitle: backendItem.brand || backendItem.categoryName || '',
-      type: backendItem.categorySlug, // Will now be 'phone' from backend
-      price: finalPrice,
-      rating: finalRating.toString(),
-      imageUrl: finalImage,
-      imageAlt: backendItem.name || 'Product image',
-      showMatchBadge: backendItem.showMatchBadge || false,
-      matchScore: backendItem.matchScore
-    };
-  }
-
-  private mapToProductDetails(backendItem: any): ProductDetails {
-    const baseProduct = this.mapToFrontendProduct(backendItem);
-    
-    let parsed: any = {};
-    try { 
-      parsed = backendItem.specs ? JSON.parse(backendItem.specs) : {}; 
-    } catch (e) { 
-      console.error('Failed to parse specs', e); 
-    }
-
-    const vendors: VendorInfo[] = [];
-    if (parsed.source || parsed.url || parsed.price) {
-      const vendorName = parsed.source || 'Official Store';
-      vendors.push({
-        name: vendorName,
-        letter: vendorName.charAt(0).toUpperCase(),
-        price: parsed.price ? `${parsed.price} EGP` : baseProduct.price,
-        url: parsed.url || '#',
-        availability: 'In Stock' 
-      });
-    }
-
-    const groupsMap = new Map<string, SpecGroup>();
-    const getGroup = (name: string, icon: string) => {
-      if (!groupsMap.has(name)) groupsMap.set(name, { name, icon, items: [] });
-      return groupsMap.get(name)!;
-    };
-
-    const ignoreKeys = ['url', 'source', 'price', 'id', 'name', 'brand'];
-
-    for (const [key, value] of Object.entries(parsed)) {
-      if (value === null || value === '' || Array.isArray(value)) continue;
-      if (ignoreKeys.includes(key.toLowerCase())) continue;
-
-      let label = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-      let groupName = 'General';
-      let icon = 'info';
-
-      const lowerKey = key.toLowerCase();
-      if (lowerKey.includes('camera')) { groupName = 'Camera'; icon = 'photo_camera'; }
-      else if (lowerKey.includes('battery')) { groupName = 'Battery'; icon = 'battery_charging_full'; }
-      else if (lowerKey.includes('display') || lowerKey.includes('screen')) { groupName = 'Display'; icon = 'smartphone'; }
-      else if (lowerKey.includes('os') || lowerKey.includes('processor')) { groupName = 'Platform'; icon = 'memory'; }
-      else if (lowerKey.includes('width') || lowerKey.includes('height')) { groupName = 'Design'; icon = 'straighten'; }
-      else if (lowerKey.includes('usb') || lowerKey.includes('sim')) { groupName = 'Connectivity'; icon = 'wifi'; }
-
-      getGroup(groupName, icon).items.push({ label, value: String(value) });
-    }
-
-    return {
-      ...baseProduct,
-      reviews: backendItem.review_count || backendItem.reviews || 0,
-      specGroups: Array.from(groupsMap.values()),
-      vendors
-    };
-  }
-
   getTrendingProducts(): Observable<Product[]> {
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/products/trending`).pipe(
-      map(response => (response.data || []).map(item => this.mapToFrontendProduct(item))),
-      catchError(() => of([]))
-    );
+    return this.http
+      .get<ApiResponse<ProductCardApi[]>>(`${this.apiUrl}/products/trending`)
+      .pipe(
+        map((response) => mapProductCardsToProducts(response.data ?? [])),
+        catchError(() => of([])),
+      );
   }
 
   getFilterMetadata(type: string): Observable<FilterMetadata> {
-    return this.http.get<ApiResponse<FilterMetadata>>(`${this.apiUrl}/filters`, {
-      params: new HttpParams().set('type', type)
-    }).pipe(
-      map(response => response.data || { brands: [], minPrice: 0, maxPrice: 5000, specs: {} })
-    );
+    const category = normalizeCategorySlug(type);
+
+    return this.http
+      .get<ApiResponse<FilterPayloadApi>>(`${this.apiUrl}/filters`, {
+        params: new HttpParams().set('type', category),
+      })
+      .pipe(
+        map((response) =>
+          response.data
+            ? mapFilterPayloadToMetadata(response.data)
+            : { brands: [], minPrice: 0, maxPrice: 5000, specs: {} },
+        ),
+      );
   }
-  
-  getProducts(filters: ProductSearchFilters): Observable<Product[]> {
-    let params = new HttpParams().set('type', filters.type);
+
+  getProducts(filters: ProductSearchFilters): Observable<ProductListingPage> {
+    const category = normalizeCategorySlug(filters.type);
+    const page = Math.max(0, filters.page ?? 0);
+    const size = Math.min(
+      Math.max(1, filters.size ?? PRODUCT_LISTING_PAGE_SIZE),
+      PRODUCT_LISTING_PAGE_SIZE,
+    );
+
+    let params = new HttpParams()
+      .set('category', category)
+      .set('page', String(page))
+      .set('size', String(size));
+
     if (filters.q) params = params.set('q', filters.q);
-    if (filters.brands) params = params.set('brands', filters.brands);
-    if (filters.maxPrice) params = params.set('maxPrice', filters.maxPrice.toString());
+    if (filters.brands) {
+      for (const brand of filters.brands.split(',').map((b) => b.trim()).filter(Boolean)) {
+        params = params.append('brands', brand);
+      }
+    }
+
+    if (filters.minPrice != null && Number.isFinite(filters.minPrice)) {
+      params = params.set('minPrice', String(Math.round(filters.minPrice)));
+    }
+
+    if (filters.maxPrice != null && Number.isFinite(filters.maxPrice)) {
+      params = params.set('maxPrice', String(Math.round(filters.maxPrice)));
+    }
+
     if (filters.storage) params = params.set('storage', filters.storage);
     if (filters.ram) params = params.set('ram', filters.ram);
-    if (filters.sort) params = params.set('sort', filters.sort);
-    
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/products`, { params }).pipe(
-      map(response => (response.data || []).map(item => this.mapToFrontendProduct(item))),
-      catchError(() => of([]))
-    );
+
+    const apiSort = mapListingSortToApi(filters.sort);
+    if (apiSort) {
+      params = params.set('sort', apiSort);
+    }
+
+    return this.http
+      .get<ApiResponse<PagedResponse<ProductCardApi>>>(`${this.apiUrl}/products`, { params })
+      .pipe(
+        map((response) => {
+          const data = response.data;
+          return {
+            products: mapProductCardsToProducts(data?.content ?? []),
+            page: data?.page ?? 0,
+            totalPages: data?.totalPages ?? 0,
+            totalElements: data?.totalElements ?? 0,
+          };
+        }),
+        catchError(() =>
+          of({ products: [], page: 0, totalPages: 0, totalElements: 0 }),
+        ),
+      );
   }
 
   getProductById(id: number): Observable<ProductDetails> {
-    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/products/${id}`).pipe(
-      map(response => {
+    return this.http.get<ApiResponse<ProductDetailApi>>(`${this.apiUrl}/products/${id}`).pipe(
+      map((response) => {
         if (!response.data) throw new Error('Not found');
-        return this.mapToProductDetails(response.data);
-      })
+        return mapProductDetailToProductDetails(response.data);
+      }),
     );
   }
 
   getProductsByIds(ids: number[]): Observable<ProductDetails[]> {
-    const params = new HttpParams().set('ids', ids.join(','));
-    return this.http.get<ApiResponse<any[]>>(`${this.apiUrl}/products/batch`, { params }).pipe(
-      map(response => (response.data || []).map(item => this.mapToProductDetails(item)))
+    const uniqueIds = [...new Set(ids.filter((id) => Number.isFinite(id) && id > 0))];
+
+    if (uniqueIds.length === 0) {
+      return of([]);
+    }
+
+    // No batch endpoint in the API — fetch each product via GET /products/{id}
+    return forkJoin(
+      uniqueIds.map((id) =>
+        this.getProductById(id).pipe(
+          catchError(() => of(null)),
+        ),
+      ),
+    ).pipe(
+      map((products) => products.filter((product): product is ProductDetails => product !== null)),
     );
   }
 
   getAiSummaryForProduct(id: number): Observable<AiSummary> {
-    return this.http.get<ApiResponse<AiSummary>>(`${this.apiUrl}/products/${id}/ai-summary`).pipe(
-      map(response => response.data || { summaryText: 'AI summary unavailable.' })
-    );
+    return this.http
+      .get<ApiResponse<AiSummaryPayloadApi>>(`${this.apiUrl}/products/${id}/ai-summary`)
+      .pipe(
+        map((response) =>
+          response.data
+            ? mapAiSummaryPayload(response.data)
+            : { summaryText: 'AI summary unavailable.' },
+        ),
+      );
   }
 
   getAiComparisonSummary(ids: number[]): Observable<AiSummary> {
     const params = new HttpParams().set('ids', ids.join(','));
-    return this.http.get<ApiResponse<AiSummary>>(`${this.apiUrl}/products/compare/ai-summary`, { params }).pipe(
-      map(response => response.data || { summaryText: 'AI comparison unavailable.' })
-    );
+    return this.http
+      .get<ApiResponse<AiSummaryPayloadApi>>(`${this.apiUrl}/products/compare/ai-summary`, {
+        params,
+      })
+      .pipe(
+        map((response) =>
+          response.data
+            ? mapAiSummaryPayload(response.data)
+            : { summaryText: 'AI comparison unavailable.' },
+        ),
+      );
   }
 }

@@ -15,7 +15,7 @@ export const DEVICE_STRATEGIES: Record<string, DevicePreferenceStrategy> = {
       return state.variants['laptop']?.[0]?.data as LaptopPreferencesPayload | undefined;
     },
     savePreferences: (service, data) => {
-      service.upsertVariant<LaptopPreferencesPayload>('laptop', null, data, 'finished');
+      service.upsertVariant<LaptopPreferencesPayload>('laptop', 0, data, 'finished');
     },
   },
   phone: {
@@ -24,7 +24,7 @@ export const DEVICE_STRATEGIES: Record<string, DevicePreferenceStrategy> = {
       return state.variants['phone']?.[0]?.data as PhonePreferencesPayload | undefined;
     },
     savePreferences: (service, data) => {
-      service.upsertVariant<PhonePreferencesPayload>('phone', null, data, 'finished');
+      service.upsertVariant<PhonePreferencesPayload>('phone', 0, data, 'finished');
     },
   },
 };

@@ -12,4 +12,8 @@ export interface OnboardingVariant<T = unknown> {
 export interface OnboardingState {
   selectedDevices: string[];
   variants: Record<string, OnboardingVariant[]>;
+  /** Accessory keys the user explicitly skipped on step 4. */
+  skippedAccessories?: string[];
+  /** Frontend-only persona id (student, gamer, etc.) */
+  selectedProfileId?: string | null;
 }

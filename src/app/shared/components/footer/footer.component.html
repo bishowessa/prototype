@@ -1,0 +1,102 @@
+<footer class="bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+  <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-20 lg:py-12">
+    <div class="grid grid-cols-1 gap-10 lg:grid-cols-4 lg:gap-12">
+      <!-- Brand -->
+      <div class="lg:col-span-1">
+        <a routerLink="/" class="inline-flex items-center gap-2 transition-opacity hover:opacity-80">
+          <app-icon name="manage_search" customClass="text-primary !text-2xl" />
+          <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">
+            Smart Compare
+          </span>
+        </a>
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+          Your intelligent hub for tracking, comparing, and analyzing electronics in the Egyptian
+          market.
+        </p>
+      </div>
+
+      <!-- Navigation -->
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+          Navigation
+        </h3>
+        <ul class="mt-4 space-y-3">
+          <li>
+            <a
+              routerLink="/"
+              class="text-sm text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+            >
+              Home
+            </a>
+          </li>
+          <li>
+            <a
+              routerLink="/products"
+              class="text-sm text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+            >
+              All Products
+            </a>
+          </li>
+          <li>
+            <a
+              routerLink="/onboarding/5"
+              [queryParams]="{ view: 'true' }"
+              class="text-sm text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+            >
+              My Profile
+            </a>
+          </li>
+          <li>
+            <a
+              routerLink="/compare"
+              class="text-sm text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+            >
+              Compare
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Categories -->
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+          Categories
+        </h3>
+        <ul class="mt-4 space-y-3">
+          @for (category of categoryLinks; track category.type) {
+            <li>
+              <a
+                routerLink="/products"
+                [queryParams]="{ type: category.type }"
+                class="text-sm text-slate-600 transition-colors hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+              >
+                {{ category.label }}
+              </a>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <!-- Team -->
+      <div>
+        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+          Project Team
+        </h3>
+        <ul class="mt-4 space-y-2">
+          @for (member of teamMembers; track member) {
+            <li class="text-sm text-slate-500 dark:text-slate-400">{{ member }}</li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="border-t border-slate-200 dark:border-slate-800">
+    <div class="mx-auto flex max-w-7xl items-center justify-center px-6 py-6 lg:px-20">
+      <p class="text-center text-xs text-slate-500 dark:text-slate-400">
+        © 2026 Smart Compare. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>

@@ -1,8 +1,12 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 import { filter, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
 import { OnboardingNavigationService } from '@app/core/services/onboarding-navigation.service';
+import { OnboardingStateService } from '@app/core/services/onboarding-state.service';
+import { AuthStateService } from '@app/core/services/auth-state.service';
+import { PreferenceService } from '@app/core/services/preference.service';
+import { tryMapApiPreferencesToOnboardingState } from '@app/core/mappers/preference.mapper';
 import { ONBOARDING_STEPS, TOTAL_STEPS } from './config/onboarding-steps.config';
 import { OnboardingHeaderComponent } from './components/onboarding-header/onboarding-header.component';
 import { OnboardingFooterComponent } from './components/onboarding-footer/onboarding-footer.component';
@@ -30,6 +34,9 @@ export class OnboardingLayoutComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly navigationService = inject(OnboardingNavigationService);
+  private readonly onboardingState = inject(OnboardingStateService);
+  private readonly authState = inject(AuthStateService);
+  private readonly preferenceService = inject(PreferenceService);
   private readonly destroy$ = new Subject<void>();
 
   protected readonly steps = ONBOARDING_STEPS;
@@ -48,24 +55,26 @@ export class OnboardingLayoutComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    // Initial load - get stepId from route
+    this.loadSavedPreferencesIfAuthenticated();
     this.updateStepFromRoute();
 
-    // Subscribe to route paramMap changes
     const routeToSubscribe = this.route.firstChild || this.route;
 
     routeToSubscribe.paramMap.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.updateStepFromRoute();
     });
 
-    // Listen to navigation end events
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
         takeUntil(this.destroy$),
       )
-      .subscribe(() => {
+      .subscribe((event) => {
         this.updateStepFromRoute();
+
+        if ((event as NavigationEnd).urlAfterRedirects.startsWith('/onboarding')) {
+          this.loadSavedPreferencesIfAuthenticated();
+        }
       });
   }
 
@@ -107,7 +116,28 @@ export class OnboardingLayoutComponent implements OnInit, OnDestroy {
   }
 
   protected onSignOut(): void {
-    this.router.navigate(['/onboarding', '1']);
+    this.authState.consumerLogout();
+  }
+
+  private loadSavedPreferencesIfAuthenticated(): void {
+    if (!this.authState.isConsumerAuthenticated()) {
+      return;
+    }
+
+    forkJoin({
+      options: this.preferenceService.getOptions(),
+      prefs: this.preferenceService.getPreferences(),
+    }).subscribe({
+      next: ({ options, prefs }) => {
+        const hydrated = tryMapApiPreferencesToOnboardingState(prefs, options);
+        if (hydrated) {
+          this.onboardingState.hydrateFromSavedPreferences(hydrated);
+        }
+      },
+      error: () => {
+        /* keep current in-memory state if fetch fails */
+      },
+    });
   }
 
   private isValidStep(step: number): boolean {

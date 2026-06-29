@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { AccessoryBudgetOption } from '@app/shared/models/preference-options.model';
+import { ACCESSORY_BUDGET_PICKER_OPTIONS } from '../config/onboarding-budget.labels';
 
 @Component({
   selector: 'app-accessory-budget-input',
@@ -11,12 +12,7 @@ export class AccessoryBudgetInputComponent {
   @Input() value: AccessoryBudgetOption = 'medium';
   @Output() readonly valueChange = new EventEmitter<AccessoryBudgetOption>();
 
-  protected readonly options: { value: AccessoryBudgetOption; label: string; symbol: string }[] =
-    [
-      { value: 'low', label: '$', symbol: '$' },
-      { value: 'medium', label: '$$', symbol: '$$' },
-      { value: 'high', label: '$$$', symbol: '$$$' },
-    ];
+  protected readonly options = ACCESSORY_BUDGET_PICKER_OPTIONS;
 
   protected onSelect(option: AccessoryBudgetOption): void {
     this.value = option;

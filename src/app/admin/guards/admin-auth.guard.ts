@@ -1,0 +1,32 @@
+import { inject } from '@angular/core';
+
+import { CanActivateFn, Router } from '@angular/router';
+
+import { AuthStateService } from '@app/core/services/auth-state.service';
+
+
+
+export const adminAuthGuard: CanActivateFn = (_route, state) => {
+
+  const authState = inject(AuthStateService);
+
+  const router = inject(Router);
+
+
+
+  if (authState.isAdmin()) {
+
+    return true;
+
+  }
+
+
+
+  return router.createUrlTree(['/login'], {
+
+    queryParams: { returnUrl: state.url },
+
+  });
+
+};
+

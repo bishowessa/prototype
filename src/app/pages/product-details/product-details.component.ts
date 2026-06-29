@@ -5,11 +5,12 @@ import { HttpErrorResponse } from '@angular/common/http'; // NEW
 import { ProductListingService, ProductDetails, AiSummary } from '@app/core/services/product-listing.service';
 import { NavbarComponent } from '@app/shared/components/navbar/navbar.component';
 import { LandingFooterComponent } from '@app/shared/components/landing-footer/landing-footer.component';
+import { MarkdownContentComponent } from '@app/shared/components/markdown-content/markdown-content.component';
 
 @Component({
   selector: 'app-product-details',
   standalone: true,
-  imports: [CommonModule, RouterLink, NavbarComponent, LandingFooterComponent], 
+  imports: [CommonModule, RouterLink, NavbarComponent, LandingFooterComponent, MarkdownContentComponent],
   templateUrl: './product-details.component.html',
   styles: []
 })

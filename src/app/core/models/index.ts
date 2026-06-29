@@ -26,3 +26,5 @@ export * from './headphones-preferences.model';
 export * from './charger-preferences.model';
 export * from './user-wishlist-item.model';
 export * from './product-card.dto';
+export * from './product-api.model';
+export * from './preference-api.model';

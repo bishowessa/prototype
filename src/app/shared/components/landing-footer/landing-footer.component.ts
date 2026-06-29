@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { IconComponent } from '@app/shared/components/icon/icon.component';
+import { FooterComponent } from '@app/shared/components/footer/footer.component';
 
 @Component({
   selector: 'app-landing-footer',
   standalone: true,
-  imports: [IconComponent],
-  templateUrl: './landing-footer.component.html',
+  imports: [FooterComponent],
+  template: `<app-footer />`,
 })
 export class LandingFooterComponent {}

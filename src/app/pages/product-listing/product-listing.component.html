@@ -1,11 +1,26 @@
 <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
   <app-navbar />
   <main class="grow">
-    <div class="max-w-7xl mx-auto px-6 lg:px-20 py-8">
-      <div class="flex flex-col lg:flex-row gap-8">
-        <aside class="w-full lg:w-64 shrink-0 space-y-8">
-          <div>
-            <h3 class="text-sm font-bold uppercase text-slate-400 mb-4">Brand</h3>
+    <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-20 lg:py-8">
+      <div class="flex flex-col gap-6 lg:flex-row lg:gap-8">
+        <aside class="w-full shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 lg:w-64 lg:space-y-8 lg:rounded-none lg:border-0 lg:bg-transparent">
+          <div class="border-b border-slate-200 last:border-b-0 dark:border-slate-700 lg:border-0">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between px-4 py-3 text-left lg:hidden"
+              (click)="toggleMobileFilter('brand')"
+              [attr.aria-expanded]="isMobileFilterExpanded('brand')"
+            >
+              <span class="text-sm font-bold uppercase text-slate-400">Brand</span>
+              <span class="material-symbols-outlined text-slate-400">
+                {{ isMobileFilterExpanded('brand') ? 'expand_less' : 'expand_more' }}
+              </span>
+            </button>
+            <h3 class="mb-4 hidden text-sm font-bold uppercase text-slate-400 lg:block">Brand</h3>
+            <div
+              class="px-4 pb-4 lg:px-0 lg:pb-0 lg:block!"
+              [class.hidden]="!isMobileFilterExpanded('brand')"
+            >
             <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
               @for (brand of availableFilters().brands; track brand) {
                 <label class="flex items-center gap-3 cursor-pointer group">
@@ -14,61 +29,198 @@
                 </label>
               }
             </div>
-          </div>
-
-          <div>
-            <h3 class="text-sm font-bold uppercase text-slate-400 mb-4">Price Range</h3>
-            <div class="px-2">
-              <input type="range" [min]="availableFilters().minPrice" [max]="availableFilters().maxPrice" [value]="activeFilters.maxPrice" (change)="onPriceChange($event)" class="w-full accent-primary" />
-              <div class="flex justify-between mt-2 text-xs font-bold">
-                <span>${{ availableFilters().minPrice }}</span>
-                <span class="text-primary">${{ activeFilters.maxPrice }}</span>
-              </div>
             </div>
           </div>
 
-          @if (availableFilters().specs['storage']) {
-            <div>
-              <h3 class="text-sm font-bold uppercase text-slate-400 mb-4">Storage</h3>
-              <div class="grid grid-cols-1 gap-2">
-                @for (opt of availableFilters().specs['storage']; track opt) {
-                  <button (click)="toggleArrayFilter('storage', opt)" [class.border-primary]="activeFilters.storage.includes(opt)" class="px-4 py-2 text-sm border rounded-xl">{{ opt }}</button>
-                }
+          <div class="border-b border-slate-200 last:border-b-0 dark:border-slate-700 lg:border-0">
+            <button
+              type="button"
+              class="flex w-full items-center justify-between px-4 py-3 text-left lg:hidden"
+              (click)="toggleMobileFilter('price')"
+              [attr.aria-expanded]="isMobileFilterExpanded('price')"
+            >
+              <span class="text-sm font-bold uppercase text-slate-400">Price Range</span>
+              <span class="material-symbols-outlined text-slate-400">
+                {{ isMobileFilterExpanded('price') ? 'expand_less' : 'expand_more' }}
+              </span>
+            </button>
+            <h3 class="mb-4 hidden text-sm font-bold uppercase text-slate-400 lg:block">Price Range</h3>
+            <div
+              class="px-4 pb-4 lg:px-0 lg:pb-0 lg:block!"
+              [class.hidden]="!isMobileFilterExpanded('price')"
+            >
+            <div class="flex flex-col gap-3">
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Min Price</label>
+                  <input
+                    type="number"
+                    [min]="priceRangeMin()"
+                    [max]="priceRangeMax()"
+                    [step]="priceInputStep()"
+                    [ngModel]="currentMinPrice()"
+                    (ngModelChange)="currentMinPrice.set($event)"
+                    (keyup.enter)="applyPriceFilter()"
+                    class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-primary dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Max Price</label>
+                  <input
+                    type="number"
+                    [min]="priceRangeMin()"
+                    [max]="priceRangeMax()"
+                    [step]="priceInputStep()"
+                    [ngModel]="currentMaxPrice()"
+                    (ngModelChange)="currentMaxPrice.set($event)"
+                    (keyup.enter)="applyPriceFilter()"
+                    class="w-full rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm text-slate-900 outline-none focus:border-primary dark:border-slate-600 dark:bg-slate-800 dark:text-white"
+                  />
+                </div>
               </div>
+              <button
+                type="button"
+                (click)="applyPriceFilter()"
+                class="w-full rounded-lg bg-primary px-3 py-1.5 text-sm font-bold text-white transition-colors hover:bg-blue-700"
+              >
+                Apply
+              </button>
             </div>
+            </div>
+          </div>
+
+          @for (specKey of specFilterKeys(); track specKey) {
+            @if (availableFilters().specs[specKey]?.length) {
+              <div class="border-b border-slate-200 last:border-b-0 dark:border-slate-700 lg:border-0">
+                <button
+                  type="button"
+                  class="flex w-full items-center justify-between px-4 py-3 text-left lg:hidden"
+                  (click)="toggleMobileFilter(specKey)"
+                  [attr.aria-expanded]="isMobileFilterExpanded(specKey)"
+                >
+                  <span class="text-sm font-bold uppercase text-slate-400">{{ formatSpecLabel(specKey) }}</span>
+                  <span class="material-symbols-outlined text-slate-400">
+                    {{ isMobileFilterExpanded(specKey) ? 'expand_less' : 'expand_more' }}
+                  </span>
+                </button>
+                <h3 class="mb-4 hidden text-sm font-bold uppercase text-slate-400 lg:block">{{ formatSpecLabel(specKey) }}</h3>
+                <div
+                  class="px-4 pb-4 lg:px-0 lg:pb-0 lg:block!"
+                  [class.hidden]="!isMobileFilterExpanded(specKey)"
+                >
+                <div class="space-y-3 max-h-60 overflow-y-auto pr-2">
+                  @for (opt of availableFilters().specs[specKey]; track opt) {
+                    <label class="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        [checked]="isSpecValueSelected(specKey, opt)"
+                        (change)="toggleSpecFilter(specKey, opt)"
+                        class="w-5 h-5 rounded border-slate-300 text-primary"
+                      />
+                      <span class="text-sm text-slate-600 dark:text-slate-300 group-hover:text-primary">{{ opt }}</span>
+                    </label>
+                  }
+                </div>
+                </div>
+              </div>
+            }
           }
         </aside>
 
         <div class="grow">
-          <div class="bg-white dark:bg-slate-900 border rounded-2xl p-4 mb-8 flex flex-col md:flex-row gap-4 items-center shadow-sm">
+          <div class="mb-6 flex flex-col gap-4 rounded-2xl border bg-white p-4 shadow-sm dark:bg-slate-900 lg:mb-8 lg:flex-row lg:items-center lg:gap-4 lg:p-4">
             <select [(ngModel)]="activeFilters.type" (change)="onTypeChange()" class="bg-transparent border-none text-sm font-bold outline-none">
-              <option value="phone">Phones</option>
-              <option value="laptop">Laptops</option>
-              <option value="accessory">Accessories</option>
+              @for (category of categoryOptions; track category.type) {
+                <option [value]="category.type">{{ category.label }}</option>
+              }
             </select>
-            <div class="grow flex items-center gap-2 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-2">
+            <div class="w-full grow flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2 dark:bg-slate-800 lg:grow">
               <span class="material-symbols-outlined text-slate-400">search</span>
               <input type="text" [(ngModel)]="activeFilters.q" (keyup.enter)="onSearch()" placeholder="Search..." class="w-full bg-transparent border-none text-sm outline-none">
             </div>
-            <button (click)="onSearch()" class="bg-primary text-white px-8 py-2 rounded-xl font-bold">Search</button>
+            <button (click)="onSearch()" class="w-full rounded-xl bg-primary px-8 py-2 font-bold text-white lg:w-auto">Search</button>
+          </div>
+
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+            @if (showBadgeLegend()) {
+              <p class="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                <span class="mr-1">✨</span>
+                Products highlighted with an AI Match badge are recommended based on your saved preferences.
+              </p>
+            }
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 sm:ml-auto shrink-0">
+              <span class="text-slate-400 uppercase text-xs tracking-wide">Sort by</span>
+              <select
+                [(ngModel)]="activeFilters.sort"
+                (change)="onSortChange()"
+                class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-900 outline-none focus:border-primary dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              >
+                @for (option of sortOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </label>
           </div>
 
           @if (isLoading()) {
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              @for (s of [1,2,3]; track s) { <div class="animate-pulse bg-slate-200 h-64 rounded-2xl"></div> }
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" aria-busy="true" aria-label="Loading products">
+              @for (s of skeletonSlots; track s) {
+                <div class="animate-pulse rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden h-full flex flex-col">
+                  <div class="h-48 bg-slate-200 dark:bg-slate-700 shrink-0"></div>
+                  <div class="p-4 flex flex-col gap-3 grow">
+                    <div class="space-y-2">
+                      <div class="h-5 bg-slate-200 dark:bg-slate-700 rounded-lg w-4/5"></div>
+                      <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-3/5"></div>
+                    </div>
+                    <div class="mt-auto flex items-end justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
+                      <div class="h-6 bg-slate-200 dark:bg-slate-700 rounded-lg w-28"></div>
+                      <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-14"></div>
+                    </div>
+                    <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded w-20"></div>
+                  </div>
+                </div>
+              }
             </div>
-          } @else if (products().length === 0) {
-            <div class="text-center py-20 border-2 border-dashed rounded-xl">
-              <h3 class="text-xl font-bold">No products found</h3>
-              <button (click)="onTypeChange()" class="mt-4 bg-primary text-white px-6 py-2 rounded-lg">Clear Filters</button>
-            </div>
-          } @else {
+          } @else if (products().length > 0) {
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               @for (p of products(); track p.id) {
                 <div [routerLink]="['/products', p.id]" class="border-2 rounded-2xl" [class.border-primary]="selectedIds().includes(p.id)">
-                  <app-product-card [title]="p.title" [subtitle]="p.subtitle" [price]="p.price" [rating]="p.rating" [imageUrl]="p.imageUrl" [isSelected]="selectedIds().includes(p.id)" (toggleSelect)="toggleCompare(p.id)" />
+                  <app-product-card [title]="p.title" [subtitle]="p.subtitle" [price]="p.price" [priceValue]="p.priceValue" [imageUrl]="p.imageUrl" [showMatchBadge]="p.showMatchBadge" [mainSpecs]="p.mainSpecs ?? []" [isSelected]="selectedIds().includes(p.id)" (toggleSelect)="toggleCompare(p.id)" />
                 </div>
               }
+            </div>
+
+            @if (totalPages() > 1) {
+              <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-slate-200 dark:border-slate-700 pt-6">
+                <p class="text-sm text-slate-500 dark:text-slate-400">
+                  Page {{ currentPage() + 1 }} of {{ totalPages() }}
+                  <span class="hidden sm:inline"> · {{ totalElements() }} products</span>
+                </p>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    (click)="goToPreviousPage()"
+                    [disabled]="!canGoPrevious() || isLoading()"
+                    class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    (click)="goToNextPage()"
+                    [disabled]="!canGoNext() || isLoading()"
+                    class="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            }
+          } @else {
+            <div class="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white">No products found</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Try adjusting your filters or search terms.</p>
+              <button (click)="clearFilters()" class="mt-4 bg-primary text-white px-6 py-2 rounded-lg font-bold">Clear Filters</button>
             </div>
           }
         </div>
@@ -79,7 +231,7 @@
   <app-landing-footer />
 
   @if (selectedIds().length >= 2) {
-    <div class="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[999] animate-[bounce_1s_infinite]">
+    <div class="fixed bottom-6 right-6 z-999 animate-bounce md:bottom-10 md:right-10">
       <button 
         (click)="goToComparison()"
         class="flex items-center gap-3 bg-primary hover:bg-blue-700 text-white px-8 py-4 rounded-full shadow-2xl transition-all transform hover:scale-105 border-2 border-white/20 backdrop-blur-md"
